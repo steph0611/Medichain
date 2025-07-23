@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login | Medigraph</title>
+    <title>Login | Medichain</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ asset('styles.css') }}">
     
@@ -50,7 +50,7 @@
                 <button type="submit">Log in</button>
 
                 <div class="register">
-                    <p>Don't have an account? <a href="{{ url('/register') }}">Sign Up</a></p>
+                    <p>Don't have an account? <a href="{{ url('/userselect') }}">Sign Up</a></p>
                 </div>
             </form>
         </div>
