@@ -68,9 +68,16 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="api_key">API Key (optional)</label>
+                    <label for="api_key">API Key </label>
                     <input type="text" id="api_key" name="api_key" value="{{ old('api_key') }}">
                 </div>
+
+                 <div class="form-group">
+                    <label for="url">URL</label>
+                    <input type="text" id="url" name="url" value="{{ old('url') }}" required>
+                </div>
+
+
 
                 <button type="submit">Register</button>
 

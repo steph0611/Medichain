@@ -202,118 +202,103 @@ color: #1d4ed8;
 font-weight: 600;
 }
 
-.card {
-background: #ffffff;
-border-radius: 8px;
-padding: 1rem;
-box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.card-number {
-font-size: 1.5rem;
-font-weight: bold;
-}
-
-.card-label {
-color: #6b7280;
-}
-
-.card-sub {
-font-size: 0.875rem;
-color: #10b981;
-}
-
-.icon-box {
-font-size: 1.75rem;
-background-color: #f3f4f6;
-padding: 0.5rem;
-border-radius: 8px;
-display: inline-block;
-margin-right: 0.75rem;
-}
-
-.grid {
-display: grid;
-grid-template-columns: repeat(4, 1fr);
-gap: 1rem;
-margin-bottom: 1.5rem;
-}
-
-table {
-width: 100%;
-border-collapse: collapse;
-}
-
-th, td {
-text-align: left;
-padding: 0.5rem;
-}
-
-th {
-color: #374151;
-font-weight: 600;
-}
-
-td {
-color: #374151;
-}
-
-tr {
-border-bottom: 1px solid #e5e7eb;
-}
-
-.status {
-display: inline-block;
-padding: 0.25rem 0.6rem;
-border-radius: 9999px;
-font-size: 0.75rem;
-font-weight: bold;
-color: white;
-}
-
-.status.ready {
-background-color: #10b981;
-}
-
-.status.delivered {
-background-color: #3b82f6;
-}
-
-.btn-primary {
-background-color: #2563eb;
-color: white;
-padding: 0.4rem 0.8rem;
-font-size: 0.875rem;
-border-radius: 6px;
-border: none;
-cursor: pointer;
-}
-
-.btn-primary:hover {
-background-color: #1d4ed8;
-}
-
-.upload-box {
-border: 2px dashed #d1d5db;
-padding: 2rem;
-border-radius: 0.75rem;
-text-align: center;
-background-color: #fafafa;
-}
-
 .main-content {
     flex: 1;
     padding: 2rem;
     max-width: 960px;
     margin: 0 auto;
 }
-.main-heading {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 0.25rem;
-}
-.subheading {
-    color: #6b7280;
-    margin-bottom: 1.5rem;
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    background: #f9f9f9;
 }
 
+.upload-form {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.05);
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-section h3 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.upload-box {
+    border: 2px dashed #ccc;
+    padding: 2rem;
+    text-align: center;
+    background: #fefefe;
+    border-radius: 8px;
+    position: relative;
+}
+
+.upload-label {
+    display: block;
+    cursor: pointer;
+    color: #555;
+}
+
+.upload-label input[type="file"] {
+    display: none;
+}
+
+.upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.file-hint {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #888;
+}
+
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.form-group {
+    flex: 1 1 45%;
+    display: flex;
+    flex-direction: column;
+}
+
+.full-width {
+    flex: 1 1 100%;
+}
+
+.form-group label {
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+}
+
+input, select, textarea {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.submit-btn {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    background-color: #2563eb;
+}

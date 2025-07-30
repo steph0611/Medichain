@@ -12,8 +12,8 @@
             <span class="logo-sub">Customer Portal</span>
         </div>
         <nav class="main-nav">
-            <a href="#" class="nav-item active">Dashboard</a>
-            <a href="#" class="nav-item">My Orders</a>
+            <a href="{{ url('/dashboard') }}" class="nav-item active">Dashboard</a>
+            <a href="{{ url('/orders') }}" class="nav-item">My Orders</a>
             <a href="#" class="nav-item">Pharmacies</a>
             <a href="#" class="nav-item">History</a>
         </nav>
@@ -143,7 +143,7 @@
                 <div style="font-size: 2rem;">📷</div>
                 <p><strong>Upload Prescription</strong></p>
                 <p style="color: #6b7280;">Take a photo or select from gallery</p>
-                <button class="btn-primary">Choose File</button>
+                <a href="{{ url('/orders') }}" class="btn btn-primary">Go to Orders</a>
             </div>
         </div>
     </div>

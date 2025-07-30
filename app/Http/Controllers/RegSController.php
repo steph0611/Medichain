@@ -24,7 +24,8 @@ class RegSController extends Controller
             'phone' => 'required|string',
             'user_name' => 'required|string',
             'password' => 'required|string|min:6',
-            'api_key' => 'nullable|string'
+            'api_key' => 'required|string',
+            'url' => 'required|string'
         ]);
 
         $client = new Client([
@@ -60,7 +61,8 @@ class RegSController extends Controller
                     'phone' => $request->phone,
                     'user_name' => $request->user_name,
                     'password' => $request->password,
-                    'api_key' => $request->api_key
+                    'api_key' => $request->api_key,
+                    'url' => $request->url
                 ]
             ]);
 

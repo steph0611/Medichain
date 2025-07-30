@@ -20,7 +20,7 @@ body, html {
 /* Left Panel with Background Image */
 .left {
     flex: 1;
-    background: url('/images/imgback2.avif') no-repeat center center;
+    background: url('/images/backimg1.png') no-repeat center center;
     background-size: cover;
     display: flex;
     flex-direction: column;
@@ -30,20 +30,17 @@ body, html {
     color: white;
 }
 
-.left .brand {
-    margin-bottom: 40px;
-}
 
 .left .brand h1 {
     margin: 0;
     font-size: 2.5rem;
-    color: #000000;
+    color: #ffffff;
 }
 
 .left .brand p {
     font-size: 1rem;
     margin-top: 10px;
-    color: #000000;
+    color: #ffffff;
     line-height: 1.5;
 }
 

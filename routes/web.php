@@ -34,3 +34,11 @@ Route::post('/registerC', [RegCController::class, 'register'])->name('register.p
 
 Route::get('/registerS', [RegSController::class, 'showRegisterSForm'])->name('registerS');
 Route::post('/registerS', [RegSController::class, 'register'])->name('register.post');
+
+Route::get('/orders', function () {
+    return view('order');
+})->name('orders');
+
+Route::get('/dashboard', function (){
+    return view('dashboard');
+})->name('dashboard');
