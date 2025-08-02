@@ -21,9 +21,15 @@ Route::get('/verify-notice', function () {
     return view('verifyNotice');
 })->name('verify.notice');
 
-
 // Dashboard
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('web')->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('web')
+    ->name('dashboard');
+
+// Pharmacy prescription upload
+Route::get('/pharmacy/upload/{id}', function($id) {
+    return view('upload-prescription', compact('id'));
+})->name('pharmacy.upload.form');
 
 // Logout
 Route::post('/logout', function () {
@@ -48,8 +54,3 @@ Route::post('/registerS', [RegSController::class, 'register'])->name('register.p
 Route::get('/orders', function () {
     return view('order');
 })->name('orders');
-
-// Dashboard fallback
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');

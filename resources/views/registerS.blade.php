@@ -53,6 +53,11 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" value="{{ old('city') }}" required>
+                </div>
+
+                <div class="form-group">
                     <label for="phone">Phone Number</label>
                     <input type="text" id="phone" name="phone" value="{{ old('phone') }}" required>
                 </div>

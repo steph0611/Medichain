@@ -3,44 +3,39 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 
 class DashboardController extends Controller
 {
-    public function index()
-    {
-        $data = [
-            'activeOrders' => 3,
-            'preferredPharmacies' => 5,
-            'totalSaved' => 127,
-            'ordersThisYear' => 12,
-            'orders' => [
-                [
-                    'id' => '#MC2025010',
-                    'pharmacy' => 'HealthPlus Pharmacy',
-                    'medication' => 'Lisinopril 10mg',
-                    'status' => 'READY',
-                    'total' => 24.99,
-                    'action' => 'Get Directions',
-                ],
-                [
-                    'id' => '#MC2025011',
-                    'pharmacy' => 'MedExpress',
-                    'medication' => 'Metformin 1000mg',
-                    'status' => 'READY',
-                    'total' => 18.75,
-                    'action' => 'Track',
-                ],
-                [
-                    'id' => '#MC2025009',
-                    'pharmacy' => 'Community Pharmacy',
-                    'medication' => 'Vitamin D3',
-                    'status' => 'DELIVERED',
-                    'total' => 15.50,
-                    'action' => 'Reorder',
-                ],
-            ]
-        ];
+    protected $supabaseUrl = 'https://zazdljyechhzsiodnvts.supabase.co';
+    protected $supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphemRsanllY2hoenNpb2RudnRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjE2MzMsImV4cCI6MjA2ODU5NzYzM30.OZLL_quXsqD2PJEtyQjSBOR9SaZBVXvaTfoAcBYCZTM';
 
-        return view('dashboard', $data);
+    public function index(Request $request)
+    {
+        $city = session('user')['city'] ?? null;
+
+        $client = new Client([
+            'base_uri' => $this->supabaseUrl,
+            'headers' => [
+                'apikey' => $this->supabaseKey,
+                'Authorization' => 'Bearer ' . $this->supabaseKey,
+                'Accept' => 'application/json',
+            ]
+        ]);
+
+        try {
+            $response = $client->get('/rest/v1/Shop', [
+                'query' => [
+                    'city' => 'eq.' . $city
+                ]
+            ]);
+
+            $pharmacies = json_decode($response->getBody(), true);
+
+        } catch (\Exception $e) {
+            $pharmacies = [];
+        }
+
+        return view('dashboard', compact('pharmacies'));
     }
 }
