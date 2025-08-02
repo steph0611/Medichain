@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -36,12 +37,9 @@ class AuthController extends Controller
                 ]
             ]);
 
-            // Try logging in as a Customer
+            // Customer login
             $customerResponse = $client->get('/rest/v1/customer', [
-                'query' => [
-                    'username' => 'eq.' . $username,
-                    'select' => '*'
-                ]
+                'query' => ['username' => 'eq.' . $username, 'select' => '*']
             ]);
 
             $customers = json_decode($customerResponse->getBody()->getContents(), true);
@@ -49,7 +47,11 @@ class AuthController extends Controller
             if (!empty($customers)) {
                 $user = $customers[0];
 
-                if ($user['password'] !== $password) {
+                if (!$user['email_verified']) {
+                    return back()->withErrors(['Please verify your email before logging in.']);
+                }
+
+                if (!Hash::check($password, $user['password'])) {
                     return back()->withErrors(['Incorrect password'])->withInput();
                 }
 
@@ -57,12 +59,9 @@ class AuthController extends Controller
                 return redirect('/dashboard')->with('success', 'Customer login successful!');
             }
 
-            // Try logging in as a Shop
+            // Shop login
             $shopResponse = $client->get('/rest/v1/Shop', [
-                'query' => [
-                    'user_name' => 'eq.' . $username,
-                    'select' => '*'
-                ]
+                'query' => ['user_name' => 'eq.' . $username, 'select' => '*']
             ]);
 
             $shops = json_decode($shopResponse->getBody()->getContents(), true);
@@ -70,7 +69,7 @@ class AuthController extends Controller
             if (!empty($shops)) {
                 $shop = $shops[0];
 
-                if ($shop['password'] !== $password) {
+                if (!Hash::check($password, $shop['password'])) {
                     return back()->withErrors(['Incorrect password'])->withInput();
                 }
 
@@ -80,16 +79,52 @@ class AuthController extends Controller
 
             return back()->withErrors(['No user found with this username'])->withInput();
 
-        } catch (\GuzzleHttp\Exception\RequestException $e) {
-            \Log::error('Supabase login error', [
-                'status' => $e->getResponse()?->getStatusCode(),
-                'message' => $e->getResponse()?->getBody()->getContents() ?? $e->getMessage()
+        } catch (\Exception $e) {
+            return back()->withErrors(['Unexpected error: ' . $e->getMessage()]);
+        }
+    }
+
+    public function verifyEmail(Request $request)
+    {
+        $email = $request->query('email');
+        $token = $request->query('token');
+
+        $client = new Client([
+            'base_uri' => $this->supabaseUrl,
+            'headers' => [
+                'apikey' => $this->supabaseKey,
+                'Authorization' => 'Bearer ' . $this->supabaseKey,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ]
+        ]);
+
+        try {
+            // Check token and email match
+            $response = $client->get('/rest/v1/customer', [
+                'query' => [
+                    'email' => 'eq.' . $email,
+                    'verification_token' => 'eq.' . $token,
+                    'select' => '*'
+                ]
             ]);
 
-            return back()->withErrors(['An error occurred while trying to login. Please try again later.']);
+            $user = json_decode($response->getBody(), true);
+
+            if (empty($user)) {
+                return redirect('/login')->withErrors(['Invalid verification link']);
+            }
+
+            // Update verification status
+            $client->patch('/rest/v1/customer', [
+                'query' => ['email' => 'eq.' . $email],
+                'json' => ['email_verified' => true, 'verification_token' => null]
+            ]);
+
+            return redirect('/login')->with('success', 'Email verified! You may now log in.');
+
         } catch (\Exception $e) {
-            \Log::error('Unexpected error during login', ['message' => $e->getMessage()]);
-            return back()->withErrors(['Unexpected error. Please contact support.']);
+            return redirect('/login')->withErrors(['Verification failed: ' . $e->getMessage()]);
         }
     }
 

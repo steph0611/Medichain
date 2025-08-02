@@ -1,3 +1,4 @@
+/* Reset and base */
 * {
     box-sizing: border-box;
 }
@@ -15,6 +16,7 @@ body, html {
     height: 100vh;
 }
 
+/* Left Side with background image */
 .left {
     flex: 1;
     background: url('/images/backimg1.png') no-repeat center center;
@@ -25,8 +27,6 @@ body, html {
     padding: 40px;
     color: white;
 }
-
-
 
 .left .brand h1 {
     margin: 0;
@@ -41,6 +41,7 @@ body, html {
     line-height: 1.5;
 }
 
+/* Right Form Section */
 .right {
     flex: 1;
     background-color: white;
@@ -50,6 +51,7 @@ body, html {
     padding: 40px;
 }
 
+/* Register Form */
 .form-container {
     width: 100%;
     max-width: 400px;
@@ -57,6 +59,10 @@ body, html {
 
 .form-container h2 {
     margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #222;
 }
 
 .form-group {
@@ -65,14 +71,26 @@ body, html {
 
 .form-group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border: 1px solid #007bff;
+    outline: none;
 }
 
 .form-container button {
@@ -84,28 +102,40 @@ body, html {
     border-radius: 6px;
     margin-top: 10px;
     cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
 }
 
 .form-container button:hover {
     background-color: #0056b3;
 }
 
+/* Login Link under the form */
 .form-container .login-link {
     margin-top: 20px;
     text-align: center;
+    font-size: 0.9rem;
 }
 
 .form-container .login-link a {
     color: #007bff;
     text-decoration: none;
+    font-weight: 600;
 }
 
+.form-container .login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Messages */
 .error {
     background: #ffe0e0;
     padding: 10px;
     border-radius: 5px;
     color: red;
     margin-bottom: 15px;
+    font-size: 0.9rem;
 }
 
 .success {
@@ -114,44 +144,10 @@ body, html {
     border-radius: 5px;
     color: green;
     margin-bottom: 15px;
+    font-size: 0.9rem;
 }
 
-@media(max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-
-    .left {
-        display: none;
-    }
-
-    .right {
-        flex: none;
-        height: 100vh;
-    }
-}
-
-.left {
-    flex: 1;
-    background: url('/images/backimg1.png') no-repeat center center;
-    background-size: cover;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 40px;
-    color: white;
-}
-
-
-.right {
-    flex: 1;
-    background-color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-}
-
+/* Login Form (if used separately) */
 .login-form {
     width: 100%;
     max-width: 350px;
@@ -159,22 +155,11 @@ body, html {
 
 .login-form h2 {
     margin-bottom: 20px;
+    text-align: center;
 }
 
-.form-group {
+.login-form .form-group {
     margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
 }
 
 .login-form button {
@@ -213,25 +198,18 @@ body, html {
     text-decoration: none;
 }
 
-.error {
-    background: #ffe0e0;
-    padding: 10px;
-    border-radius: 5px;
-    color: red;
-    margin-bottom: 15px;
-}
-
+/* Responsive */
 @media(max-width: 768px) {
     .container {
         flex-direction: column;
     }
+
     .left {
         display: none;
     }
+
     .right {
         flex: none;
         height: 100vh;
     }
 }
-
-

@@ -59,9 +59,35 @@
                     <input type="text" id="phone" name="phone" value="{{ old('phone') }}" required>
                 </div>
 
+                <!-- Province Dropdown -->
                 <div class="form-group">
-                    <label for="location">Location</label>
-                    <input type="text" id="location" name="location" value="{{ old('location') }}" required>
+                    <label for="province">Province</label>
+                    <select id="province" name="province" required>
+                        <option value="">-- Select Province --</option>
+                        <option value="Central">Central</option>
+                        <option value="Eastern">Eastern</option>
+                        <option value="North Central">North Central</option>
+                        <option value="Northern">Northern</option>
+                        <option value="North Western">North Western</option>
+                        <option value="Sabaragamuwa">Sabaragamuwa</option>
+                        <option value="Southern">Southern</option>
+                        <option value="Uva">Uva</option>
+                        <option value="Western">Western</option>
+                    </select>
+                </div>
+
+                <!-- District Dropdown -->
+                <div class="form-group">
+                    <label for="district">District</label>
+                    <select id="district" name="district" required>
+                        <option value="">-- Select District --</option>
+                    </select>
+                </div>
+
+                <!-- City Input Field -->
+                <div class="form-group">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" value="{{ old('city') }}" placeholder="Enter your city" required>
                 </div>
 
                 <button type="submit">Register</button>
@@ -72,5 +98,35 @@
             </form>
         </div>
     </div>
+
+<script>
+    // Districts grouped by Province
+    const districtData = {
+        "Central": ["Kandy", "Matale", "Nuwara Eliya"],
+        "Eastern": ["Ampara", "Batticaloa", "Trincomalee"],
+        "North Central": ["Anuradhapura", "Polonnaruwa"],
+        "Northern": ["Jaffna", "Kilinochchi", "Mannar", "Mullaitivu", "Vavuniya"],
+        "North Western": ["Kurunegala", "Puttalam"],
+        "Sabaragamuwa": ["Kegalle", "Ratnapura"],
+        "Southern": ["Galle", "Hambantota", "Matara"],
+        "Uva": ["Badulla", "Monaragala"],
+        "Western": ["Colombo", "Gampaha", "Kalutara"]
+    };
+
+    const provinceSelect = document.getElementById('province');
+    const districtSelect = document.getElementById('district');
+
+    // Populate districts on province change
+    provinceSelect.addEventListener('change', function () {
+        const districts = districtData[this.value] || [];
+        districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+        districts.forEach(d => {
+            const option = document.createElement('option');
+            option.value = d;
+            option.textContent = d;
+            districtSelect.appendChild(option);
+        });
+    });
+</script>
 </body>
 </html>
