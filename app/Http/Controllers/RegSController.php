@@ -44,7 +44,7 @@ class RegSController extends Controller
             $checkResponse = $client->get('/rest/v1/Shop', [
                 'query' => [
                     'user_name' => 'eq.' . $request->user_name,
-                    'select' => 'id'
+                    'select' => 'shop_id'
                 ]
             ]);
 

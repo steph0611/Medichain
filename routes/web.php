@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RegSController;
 use App\Http\Controllers\RegCController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PrescriptionController;
 
 // Initial screen
 Route::get('/', [AuthController::class, 'showLoginForm']);
@@ -16,7 +17,6 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.check');
 
 // Email verification
 Route::get('/verify-email', [AuthController::class, 'verifyEmail'])->name('verify.email');
-
 Route::get('/verify-notice', function () {
     return view('verifyNotice');
 })->name('verify.notice');
@@ -26,10 +26,11 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware('web')
     ->name('dashboard');
 
-// Pharmacy prescription upload
-Route::get('/pharmacy/upload/{id}', function($id) {
-    return view('upload-prescription', compact('id'));
-})->name('pharmacy.upload.form');
+// ✅ FIXED: Pharmacy prescription upload routes
+Route::get('/pharmacy/upload/{id}', [PrescriptionController::class, 'showUploadForm'])
+    ->name('pharmacy.upload.form');
+Route::post('/pharmacy/upload/{id}', [PrescriptionController::class, 'uploadPrescription'])
+    ->name('pharmacy.upload.submit');
 
 // Logout
 Route::post('/logout', function () {

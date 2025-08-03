@@ -46,7 +46,7 @@ class RegCController extends Controller
         try {
             // Check if username already exists in Supabase
             $checkResponse = $client->get('/rest/v1/customer', [
-                'query' => ['username' => 'eq.' . $request->username, 'select' => 'id']
+                'query' => ['username' => 'eq.' . $request->username, 'select' => 'customer_id']
             ]);
 
             $existing = json_decode($checkResponse->getBody(), true);

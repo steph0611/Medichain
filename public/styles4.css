@@ -261,19 +261,19 @@ font-weight: 600;
     color: #888;
 }
 
-.grid {
+.p_grid {
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
 }
 
-.form-group {
+.p_form-group {
     flex: 1 1 45%;
     display: flex;
     flex-direction: column;
 }
 
-.full-width {
+.p_full-width {
     flex: 1 1 100%;
 }
 

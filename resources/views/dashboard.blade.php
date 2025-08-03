@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediChain Customer Portal</title>
     <link rel="stylesheet" href="{{ asset('styles2.css') }}">
+    <link rel="stylesheet" href="{{ asset('styles4.css') }}">
 </head>
 <body>
     <div class="topbar">
@@ -20,6 +21,7 @@
             <a href="{{ url('/pharmacies') }}" class="nav-item">Pharmacies</a>
             <a href="{{ url('/history') }}" class="nav-item">History</a>
         </nav>
+
         <div class="user-section">
             <div class="avatar-container">
                 <div class="avatar-btn" onclick="toggleDropdown()">
@@ -57,7 +59,7 @@
         <div class="sidebar">
             <div class="mb-4">
                 <a href="{{ url('/dashboard') }}" class="sidebar-link active">Dashboard</a>
-                <a href="{{ url('/upload-prescription') }}" class="sidebar-link">Upload Prescription</a>
+                <a href="#" class="sidebar-link">Upload Prescription</a>
                 <a href="{{ url('/pharmacies') }}" class="sidebar-link">Find Pharmacy</a>
             </div>
             <div class="mt-8">
@@ -116,9 +118,9 @@
                                 <td>{{ $pharmacy['location'] }}</td>
                                 <td>{{ $pharmacy['phone'] }}</td>
                                 <td>
-                                    <a href="{{ route('pharmacy.upload.form', $pharmacy['id']) }}" class="btn-primary">
+                                    <button class="btn-primary" onclick="openModal({{ $pharmacy['shop_id'] }}, '{{ $pharmacy['shop_name'] }}')">
                                         Upload Prescription
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -134,6 +136,109 @@
         </div>
     </div>
 
+    <!-- MODAL -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h1 id="modalTitle">Upload Details</h1>
+
+            <form id="uploadForm" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                <!-- Step 1 -->
+                <div class="form-section">
+                    <h3>Step 1: Upload Prescription Image</h3>
+                    <div class="upload-box">
+                        <label for="prescriptionImage" class="upload-label">
+                            <div class="upload-icon">📷</div>
+                            <p>Drag and drop your prescription here<br><span>or click to browse files</span></p>
+                            <input type="file" name="prescription_image" id="prescriptionImage" 
+                                   accept=".jpg,.jpeg,.png,.pdf" required>
+                        </label>
+                        <p class="file-hint">Supported formats: JPG, PNG, PDF • Max size: 10MB</p>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="form-section">
+                    <h3>Step 2: Prescription Details</h3>
+                    <div class="p_grid">
+                        <div class="p_form-group">
+                            <label>Patient Name</label>
+                            <input type="text" name="patient_name" required>
+                        </div>
+                        <div class="p_form-group">
+                            <label>Doctor Name</label>
+                            <input type="text" name="doctor_name" required>
+                        </div>
+                        <div class="p_form-group">
+                            <label>Prescription Date</label>
+                            <input type="date" name="prescription_date" required>
+                        </div>
+                        <div class="p_form-group">
+                            <label>Address</label>
+                            <input type="text" name="Address" required>
+                        </div>
+                        <div class="p_form-group">
+                            <label>Contact No.</label>
+                            <input type="text" name="Phone" required>
+                        </div>
+                        <div class="p_form-group">
+                            <label>Email</label>
+                            <input type="email" name="Email" required>
+                        </div>
+                        <div class="p_form-group p_full-width">
+                            <label>Special Instructions</label>
+                            <textarea name="instructions" rows="3" placeholder="Enter any notes..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL STYLES -->
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content {
+            background: #fff;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 700px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        @keyframes fadeIn {
+            from {opacity: 0; transform: scale(0.9);}
+            to {opacity: 1; transform: scale(1);}
+        }
+    </style>
+
+    <!-- SCRIPTS -->
     <script>
         function toggleDropdown() {
             document.getElementById("userDropdown").classList.toggle("show");
@@ -150,6 +255,24 @@
         function toggleMobileMenu() {
             const menu = document.getElementById("mobileMenu");
             menu.classList.toggle("show");
+        }
+
+        function openModal(shopId, shopName) {
+            document.getElementById("uploadModal").style.display = "block";
+            document.getElementById("modalTitle").innerText = "Upload Details for " + shopName;
+
+            const form = document.getElementById("uploadForm");
+            form.action = `/pharmacy/upload/${shopId}`; // or use route('pharmacy.upload.submit', shopId) in JS if needed
+        }
+
+        function closeModal() {
+            document.getElementById("uploadModal").style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById("uploadModal")) {
+                closeModal();
+            }
         }
     </script>
 </body>
