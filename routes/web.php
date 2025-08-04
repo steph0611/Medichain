@@ -55,3 +55,6 @@ Route::post('/registerS', [RegSController::class, 'register'])->name('register.p
 Route::get('/orders', function () {
     return view('order');
 })->name('orders');
+
+Route::get('/pharmacy/{shop_id}/dashboard', [PrescriptionController::class, 'viewDashboard'])->name('pharmacy.dashboard');
+

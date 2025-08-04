@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Hash; // ✅ Add this
 
 class RegSController extends Controller
 {
@@ -21,7 +22,7 @@ class RegSController extends Controller
             'name' => 'required|string',
             'shop_name' => 'required|string',
             'location' => 'required|string',
-            'city'       => 'required|string',
+            'city' => 'required|string',
             'phone' => 'required|string',
             'user_name' => 'required|string',
             'password' => 'required|string|min:6',
@@ -53,16 +54,19 @@ class RegSController extends Controller
                 return back()->withErrors(['Username already exists']);
             }
 
+            // ✅ Hash the password before sending to Supabase
+            $hashedPassword = Hash::make($request->password);
+
             // Insert new shop data
             $client->post('/rest/v1/Shop', [
                 'json' => [
                     'name' => $request->name,
                     'shop_name' => $request->shop_name,
                     'location' => $request->location,
-                    'city'       => $request->city,
+                    'city' => $request->city,
                     'phone' => $request->phone,
                     'user_name' => $request->user_name,
-                    'password' => $request->password,
+                    'password' => $hashedPassword,
                     'api_key' => $request->api_key,
                     'url' => $request->url
                 ]

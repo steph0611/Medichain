@@ -37,7 +37,7 @@ class AuthController extends Controller
                 ]
             ]);
 
-            // Customer login
+            // 🧍 Try customer login
             $customerResponse = $client->get('/rest/v1/customer', [
                 'query' => ['username' => 'eq.' . $username, 'select' => '*']
             ]);
@@ -59,7 +59,7 @@ class AuthController extends Controller
                 return redirect('/dashboard')->with('success', 'Customer login successful!');
             }
 
-            // Shop login
+            // 🏪 Try shop login
             $shopResponse = $client->get('/rest/v1/Shop', [
                 'query' => ['user_name' => 'eq.' . $username, 'select' => '*']
             ]);
@@ -74,7 +74,8 @@ class AuthController extends Controller
                 }
 
                 session(['user' => $shop, 'role' => 'shop']);
-                return redirect('/shop-dashboard')->with('success', 'Shop login successful!');
+                return redirect()->route('pharmacy.dashboard', ['shop_id' => $shop['shop_id']])
+                    ->with('success', 'Shop login successful!');
             }
 
             return back()->withErrors(['No user found with this username'])->withInput();
@@ -100,7 +101,6 @@ class AuthController extends Controller
         ]);
 
         try {
-            // Check token and email match
             $response = $client->get('/rest/v1/customer', [
                 'query' => [
                     'email' => 'eq.' . $email,
@@ -115,14 +115,12 @@ class AuthController extends Controller
                 return redirect('/login')->withErrors(['Invalid verification link']);
             }
 
-            // Update verification status
             $client->patch('/rest/v1/customer', [
                 'query' => ['email' => 'eq.' . $email],
                 'json' => ['email_verified' => true, 'verification_token' => null]
             ]);
 
             return redirect('/login')->with('success', 'Email verified! You may now log in.');
-
         } catch (\Exception $e) {
             return redirect('/login')->withErrors(['Verification failed: ' . $e->getMessage()]);
         }
