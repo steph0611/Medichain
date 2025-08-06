@@ -140,7 +140,7 @@
     <div id="uploadModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h1 id="modalTitle">Upload Details</h1>
+            <h1 id="modalTitle">Upload Details</h1>       
 
             <form id="uploadForm" method="POST" enctype="multipart/form-data">
                 @csrf
