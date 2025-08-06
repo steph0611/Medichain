@@ -12,9 +12,9 @@
             We’ve sent a verification link to your email address.  
             Please check your inbox and click the link to activate your account.
         </p>
-        <a href="https://mailtrap.io/inboxes/3937735/messages" target="_blank" 
+        <a href="https://mail.google.com/mail/u/0/#inbox" target="_blank" 
            class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-            Open Mailtrap Inbox
+            Open Gmail Inbox
         </a>
         <p class="text-sm text-gray-500 mt-6">
             Didn’t receive the email? Check your spam folder or 
