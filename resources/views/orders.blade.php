@@ -1,60 +1,61 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">My Orders</h1>
+<div class="max-w-4xl mx-auto mt-10">
+    <h2 class="text-2xl font-bold mb-6 text-center">Orders</h2>
 
-    @if (session('success'))
-        <div class="bg-green-100 text-green-800 p-2 rounded mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
+    {{-- Place Order Form --}}
+    <div class="mb-6">
+        <form action="{{ route('orders.store') }}" method="POST" class="flex gap-2">
+            @csrf
+            <input type="text" name="customer_id" placeholder="Customer ID" class="border p-2 rounded" required>
+            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Place Order</button>
+        </form>
+    </div>
 
-    @if (empty($orders))
-        <p class="text-gray-600">You have no orders yet.</p>
+    @if(empty($orders) || count($orders) === 0)
+        <p class="text-center text-gray-600">No orders yet.</p>
     @else
-        <div class="overflow-x-auto">
-            <table class="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
-                <thead>
-                    <tr class="bg-gray-100 text-gray-700">
-                        <th class="py-2 px-4 border-b">Order ID</th>
-                        <th class="py-2 px-4 border-b">Image</th>
-                        <th class="py-2 px-4 border-b">Note</th>
-                        <th class="py-2 px-4 border-b">Status</th>
-                        <th class="py-2 px-4 border-b">Created At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($orders as $order)
-                        <tr class="text-center border-b">
-                            <td class="py-2 px-4">{{ $order['id'] }}</td>
-                            <td class="py-2 px-4">
-                                @if (!empty($order['image']))
-                                    <img src="{{ $order['image'] }}" alt="Order Image" class="w-16 h-16 object-cover mx-auto rounded">
-                                @else
-                                    <span class="text-gray-500 italic">No Image</span>
-                                @endif
-                            </td>
-                            <td class="py-2 px-4">{{ $order['note'] ?? '-' }}</td>
-                            <td class="py-2 px-4">
-                                <span class="px-2 py-1 rounded text-white
-                                    @switch($order['status'])
-                                        @case('Pending') bg-yellow-500 @break
-                                        @case('Accepted') bg-blue-500 @break
-                                        @case('Ready') bg-green-500 @break
-                                        @case('Delivered') bg-gray-500 @break
-                                        @default bg-red-500
-                                    @endswitch
-                                ">
-                                    {{ $order['status'] }}
-                                </span>
-                            </td>
-                            <td class="py-2 px-4">{{ \Carbon\Carbon::parse($order['created_at'])->format('Y-m-d H:i') }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        @foreach($orders as $order)
+        <div class="bg-white shadow-md rounded-xl p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Order #{{ $order['id'] }}</h3>
+                <span class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($order['created_at'])->format('M d, Y H:i') }}</span>
+            </div>
+
+            {{-- Status tracker --}}
+            <div class="flex items-center justify-between">
+                @php
+                    $steps = ['pending', 'accepted', 'processing', 'ready', 'delivered'];
+                @endphp
+
+                @foreach($steps as $step)
+                    <div class="flex-1 flex flex-col items-center relative">
+                        <div class="w-10 h-10 flex items-center justify-center rounded-full
+                            {{ array_search($order['status'], $steps) >= array_search($step, $steps) 
+                                ? 'bg-green-500 text-white' 
+                                : 'bg-gray-300 text-gray-600' }}">
+                            @if($step === 'pending') ⏳
+                            @elseif($step === 'accepted') ✅
+                            @elseif($step === 'processing') 🔄
+                            @elseif($step === 'ready') 🍽️
+                            @elseif($step === 'delivered') 🚚
+                            @endif
+                        </div>
+                        <span class="mt-2 text-sm capitalize">{{ $step }}</span>
+
+                        @if(!$loop->last)
+                            <div class="absolute top-5 left-1/2 w-full h-1 
+                                {{ array_search($order['status'], $steps) > array_search($step, $steps) 
+                                    ? 'bg-green-500' 
+                                    : 'bg-gray-300' }}">
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
         </div>
+        @endforeach
     @endif
 </div>
 @endsection

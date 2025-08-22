@@ -12,7 +12,15 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
-        $city = session('user')['city'] ?? null;
+        $user = session('user');
+
+        // Customer details
+        $custLat = $user['latitude'] ?? null;
+        $custLng = $user['longitude'] ?? null;  
+        $custLocation = $user['city'] ?? null;
+
+        $pharmacies = [];
+        $allPharmacies = [];
 
         $client = new Client([
             'base_uri' => $this->supabaseUrl,
@@ -24,18 +32,78 @@ class DashboardController extends Controller
         ]);
 
         try {
+            // ✅ Filtered pharmacies (only in user's city)
             $response = $client->get('/rest/v1/Shop', [
                 'query' => [
-                    'city' => 'eq.' . $city
+                    'select' => '*',
+                    'location' => 'eq.' . $custLocation,
                 ]
             ]);
 
-            $pharmacies = json_decode($response->getBody(), true);
+            $shops = json_decode($response->getBody(), true);
+
+            foreach ($shops as &$shop) {
+                if (!empty($shop['latitude']) && !empty($shop['longitude']) && $custLat && $custLng) {
+                    $shop['distance'] = $this->calculateDistance($custLat, $custLng, $shop['latitude'], $shop['longitude']);
+                } else {
+                    $shop['distance'] = null;
+                }
+            }
+
+            // Sort by distance
+            usort($shops, function($a, $b) {
+                return ($a['distance'] ?? INF) <=> ($b['distance'] ?? INF);
+            });
+
+            $pharmacies = $shops;
+
+            // ✅ All pharmacies (no filter)
+            $allResponse = $client->get('/rest/v1/Shop', [
+                'query' => [
+                    'select' => '*',
+                ]
+            ]);
+
+            $allShops = json_decode($allResponse->getBody(), true);
+
+            foreach ($allShops as &$shop) {
+                if (!empty($shop['latitude']) && !empty($shop['longitude']) && $custLat && $custLng) {
+                    $shop['distance'] = $this->calculateDistance($custLat, $custLng, $shop['latitude'], $shop['longitude']);
+                } else {
+                    $shop['distance'] = null;
+                }
+            }
+
+            // Sort all pharmacies by distance too
+            usort($allShops, function($a, $b) {
+                return ($a['distance'] ?? INF) <=> ($b['distance'] ?? INF);
+            });
+
+            $allPharmacies = $allShops;
 
         } catch (\Exception $e) {
             $pharmacies = [];
+            $allPharmacies = [];
         }
 
-        return view('dashboard', compact('pharmacies'));
+        // ✅ Pass both
+        return view('dashboard', compact('pharmacies', 'allPharmacies'));
+    }
+
+    // Haversine formula
+    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371; // km
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat/2) * sin($dLat/2) +
+             cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+             sin($dLon/2) * sin($dLon/2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
+
+        return $earthRadius * $c; // distance in km
     }
 }

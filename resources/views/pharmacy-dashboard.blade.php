@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pharmacy Dashboard</title>
     <link rel="stylesheet" href="{{ asset('styles5.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <!-- Sidebar -->
@@ -92,14 +93,15 @@
                                         @else
                                             <img src="data:{{ $prescription['image_type'] }};base64,{{ $prescription['image_data'] }}"
                                                  alt="Prescription Image"
-                                                 class="w-24 h-auto border rounded" />
+                                                 class="w-24 h-auto border rounded cursor-pointer"
+                                                 onclick="openModal(this.src)" />
                                         @endif
                                     </td>
                                     <td class="py-3 px-4">{{ \Carbon\Carbon::parse($prescription['uploaded_at'])->format('Y-m-d H:i') }}</td>
 
                                     <!-- NEW: Status Update -->
                                     <td class="py-3 px-4">
-                                        <form action="{{ route('prescriptions.updateStatus', $prescription['id']) }}" method="POST" class="flex space-x-2">
+                                        <form action="{{ route('prescriptions.updateStatus', $prescription['prescription_id']) }}" method="POST" class="flex space-x-2">
                                             @csrf
                                             @method('PUT')
                                             <select name="status" class="border rounded px-2 py-1 text-sm">
@@ -121,5 +123,34 @@
             @endif
         </div>
     </div>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div class="relative bg-white p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto">
+            <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-black text-2xl">&times;</button>
+            <img id="modalImage" src="" alt="Prescription Preview" class="max-w-full max-h-[80vh] rounded">
+        </div>
+    </div>
+
+    <script>
+        // Open modal with clicked image
+        function openModal(src) {
+            document.getElementById("modalImage").src = src;
+            document.getElementById("imageModal").classList.remove("hidden");
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById("imageModal").classList.add("hidden");
+            document.getElementById("modalImage").src = "";
+        }
+
+        // Close modal when clicking outside the image
+        document.getElementById("imageModal").addEventListener("click", function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
 </body>
 </html>

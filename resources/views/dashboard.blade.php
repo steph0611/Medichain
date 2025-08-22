@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediChain Customer Portal</title>
-  
+    <title>Customer Dashboard</title>
 </head>
 <body>
     <div class="topbar">
@@ -96,55 +95,131 @@
                 </div>
             </div>
 
-            <!-- Available Pharmacies -->
             <div class="card" style="margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 style="font-size: 1.125rem; font-weight: bold;">Available Pharmacies in {{ session('user')['city'] }}</h2>
+
+                <!-- Tabs -->
+                <div style="display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem;">
+                    <button id="nearbyTab" class="tab-btn active" onclick="showTab('nearby')">
+                        Pharmacies in {{ session('user')['city'] }}
+                    </button>
+                    <button id="allTab" class="tab-btn" onclick="showTab('all')">
+                        All Pharmacies
+                    </button>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Pharmacy</th>
-                            <th>Location</th>
-                            <th>Phone</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($pharmacies as $pharmacy)
+
+                <!-- Nearby Pharmacies Tab -->
+                <div id="nearbySection">
+                    <h2 class="tab-heading">Available Pharmacies in {{ session('user')['city'] }}</h2>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>{{ $pharmacy['shop_name'] }}</td>
-                                <td>{{ $pharmacy['location'] }}</td>
-                                <td>{{ $pharmacy['phone'] }}</td>
-                                <td>
-                                    <button class="btn-primary" onclick="openModal({{ $pharmacy['shop_id'] }}, '{{ $pharmacy['shop_name'] }}')">
-                                        Upload Prescription
-                                    </button>
-                                </td>
+                                <th>Pharmacy</th>
+                                <th>Location</th>
+                                <th>Phone</th>
+                                <th>Distance</th>
+                                <th>Action</th>
                             </tr>
-                        @empty
+                        </thead>
+                        <tbody>
+                            @forelse($pharmacies as $pharmacy)
+                                <tr>
+                                    <td>{{ $pharmacy['shop_name'] }}</td>
+                                    <td>{{ $pharmacy['location'] }}, {{ $pharmacy['city'] }}</td>
+                                    <td>{{ $pharmacy['phone'] ?? 'N/A' }}</td>
+                                    <td>
+                                        @if(!is_null($pharmacy['distance']))
+                                            {{ number_format($pharmacy['distance'], 2) }} km
+                                        @else
+                                            <span style="color: #888;">unknown</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <button class="btn-primary" onclick="openModal({{ $pharmacy['shop_id'] }}, '{{ $pharmacy['shop_name'] }}')">
+                                            Upload Prescription
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" style="text-align:center; color: #6b7280;">
+                                        No pharmacies available in {{ session('user')['city'] }}.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- All Pharmacies Tab -->
+                <div id="allSection" style="display: none;">
+                    <h2 class="tab-heading">All Pharmacies</h2>
+
+                    <!-- 🔎 Search Bar -->
+                    <input 
+                        type="text" 
+                        id="pharmacySearch" 
+                        placeholder="Search by name, city, or location..." 
+                        style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem;"
+                    >
+
+                    <table id="allPharmaciesTable">
+                        <thead>
                             <tr>
-                                <td colspan="4" style="text-align:center; color: #6b7280;">
-                                    No pharmacies available in {{ session('user')['city'] }}.
-                                </td>
+                                <th>Pharmacy</th>
+                                <th>Location</th>
+                                <th>Phone</th>
+                                <th>City</th>
+                                <th>Distance</th>
+                                <th>Action</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse($allPharmacies as $pharmacy)
+                                <tr>
+                                    <td>{{ $pharmacy['shop_name'] }}</td>
+                                    <td>{{ $pharmacy['location'] }}</td>
+                                    <td>{{ $pharmacy['phone'] ?? 'N/A' }}</td>
+                                    <td>{{ $pharmacy['city'] }}</td>
+                                    <td>
+                                        @if(!is_null($pharmacy['distance']))
+                                            {{ number_format($pharmacy['distance'], 2) }} km
+                                        @else
+                                            <span style="color: #888;">unknown</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <button class="btn-primary" onclick="openModal({{ $pharmacy['shop_id'] }}, '{{ $pharmacy['shop_name'] }}')">
+                                            Upload Prescription
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" style="text-align:center; color: #6b7280;">
+                                        No pharmacies available.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- MODAL -->
-    <div id="uploadModal" class="modal">
+    <div id="uploadModal" class="modal" style="display:none;">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <h1 id="modalTitle">Upload Details</h1>       
 
-            <form id="uploadForm" method="POST" enctype="multipart/form-data">
+            <!-- Dynamic Title -->
+            <h1 id="modalTitle">Upload Prescription</h1>
+            <p>Please upload your prescription image or PDF. Our team will review and confirm your order.</p>
+
+            <!-- Upload Form -->
+            <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Step 1 -->
                 <div class="form-section">
                     <h3>Step 1: Upload Prescription Image</h3>
                     <div class="upload-box">
@@ -152,54 +227,57 @@
                             <div class="upload-icon">📷</div>
                             <p>Drag and drop your prescription here<br><span>or click to browse files</span></p>
                             <input type="file" name="prescription_image" id="prescriptionImage" 
-                                   accept=".jpg,.jpeg,.png,.pdf" required>
+                                accept=".jpg,.jpeg,.png,.pdf" required>
                         </label>
                         <p class="file-hint">Supported formats: JPG, PNG, PDF • Max size: 10MB</p>
                     </div>
-                </div>
 
-                <!-- Step 2 -->
-                <div class="form-section">
-                    <h3>Step 2: Prescription Details</h3>
-                    <div class="p_grid">
-                        <div class="p_form-group">
-                            <label>Patient Name</label>
-                            <input type="text" name="patient_name" required>
-                        </div>
-                        <div class="p_form-group">
-                            <label>Doctor Name</label>
-                            <input type="text" name="doctor_name" required>
-                        </div>
-                        <div class="p_form-group">
-                            <label>Prescription Date</label>
-                            <input type="date" name="prescription_date" required>
-                        </div>
-                        <div class="p_form-group">
-                            <label>Address</label>
-                            <input type="text" name="Address" required>
-                        </div>
-                        <div class="p_form-group">
-                            <label>Contact No.</label>
-                            <input type="text" name="Phone" required>
-                        </div>
-                        <div class="p_form-group">
-                            <label>Email</label>
-                            <input type="email" name="Email" required>
-                        </div>
-                        <div class="p_form-group p_full-width">
-                            <label>Special Instructions</label>
-                            <textarea name="instructions" rows="3" placeholder="Enter any notes..."></textarea>
+                    <!-- Preview section -->
+                    <div id="imagePreview" class="preview-container"></div>
+                </div>
+            
+
+                    <div class="form-section">
+                        <h3>Step 2: Prescription Details</h3>
+                        <div class="p_grid">
+                            <div class="p_form-group">
+                                <label>Patient Name</label>
+                                <input type="text" name="patient_name" required>
+                            </div>
+                            <div class="p_form-group">
+                                <label>Doctor Name</label>
+                                <input type="text" name="doctor_name" required>
+                            </div>
+                            <div class="p_form-group">
+                                <label>Prescription Date</label>
+                                <input type="date" name="prescription_date" required>
+                            </div>
+                            <div class="p_form-group">
+                                <label>Address</label>
+                                <input type="text" name="Address" required>
+                            </div>
+                            <div class="p_form-group">
+                                <label>Contact No.</label>
+                                <input type="text" name="Phone" required>
+                            </div>
+                            <div class="p_form-group">
+                                <label>Email</label>
+                                <input type="email" name="Email" required>
+                            </div>
+                            <div class="p_form-group p_full-width">
+                                <label>Special Instructions</label>
+                                <textarea name="instructions" rows="3" placeholder="Enter any notes..."></textarea>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <button type="submit" class="btn-primary">Submit</button>
-            </form>
+                    <button type="submit" class="btn-primary">Submit</button>
+                </form>
+            </div>
         </div>
     </div>
 
-    <!-- MODAL STYLES -->
-    <style>
+        <style>
         .modal {
             display: none;
             position: fixed;
@@ -211,6 +289,7 @@
             height: 100%;
             background-color: rgba(0,0,0,0.6);
         }
+        
         .modal-content {
             background: #fff;
             margin: auto;
@@ -220,7 +299,15 @@
             max-width: 700px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             animation: fadeIn 0.3s;
+            max-height: 90vh;     /* take up to 90% of viewport height */
+            overflow-y: auto;     /* enable vertical scroll */
+            border-radius: 12px;
         }
+        .modal-body {
+            overflow-y: auto;      /* scroll only inside this wrapper */
+            max-height: 70vh;      /* adjust to prevent modal from stretching */
+        }
+        
         .close {
             color: #aaa;
             float: right;
@@ -1012,6 +1099,82 @@
         .submit-btn:hover {
             background-color: #2563eb;
         }
+       
+        .upload-box {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .upload-label {
+            display: block;
+            cursor: pointer;
+        }
+        .upload-label input {
+            display: none;
+        }
+        .file-hint {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .preview-container {
+            margin-top: 1rem;
+            max-height: 250px;   /* control height */
+            overflow-y: auto;    /* scroll vertically if content is large */
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+        .remove-btn {
+            margin-top: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .submit-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-weight: 600;
+            color: #6b7280;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: color 0.2s, border-bottom 0.2s;
+        }
+        .tab-btn:hover {
+            color: #111827;
+        }
+        .tab-btn.active {
+            color: #2563eb; /* Blue highlight */
+            border-bottom: 3px solid #2563eb;
+        }
+        .tab-heading {
+            font-size: 1.125rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
 
         @keyframes fadeIn {
             from {opacity: 0; transform: scale(0.9);}
@@ -1019,12 +1182,10 @@
         }
     </style>
 
-    <!-- SCRIPTS -->
     <script>
         function toggleDropdown() {
             document.getElementById("userDropdown").classList.toggle("show");
         }
-
         window.addEventListener('click', function(e) {
             const dropdown = document.getElementById("userDropdown");
             const avatar = document.querySelector('.avatar-btn');
@@ -1032,29 +1193,84 @@
                 dropdown.classList.remove("show");
             }
         });
-
         function toggleMobileMenu() {
             const menu = document.getElementById("mobileMenu");
             menu.classList.toggle("show");
         }
-
         function openModal(shopId, shopName) {
             document.getElementById("uploadModal").style.display = "block";
             document.getElementById("modalTitle").innerText = "Upload Details for " + shopName;
-
             const form = document.getElementById("uploadForm");
-            form.action = `/pharmacy/upload/${shopId}`; // or use route('pharmacy.upload.submit', shopId) in JS if needed
+            form.action = `/pharmacy/upload/${shopId}`;
         }
-
         function closeModal() {
             document.getElementById("uploadModal").style.display = "none";
         }
-
         window.onclick = function(event) {
             if (event.target == document.getElementById("uploadModal")) {
                 closeModal();
             }
         }
     </script>
+    <script>
+    document.getElementById("prescriptionImage").addEventListener("change", function(event) {
+        const previewContainer = document.getElementById("imagePreview");
+        previewContainer.innerHTML = ""; // Clear old preview
+
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (file.type.startsWith("image/")) {
+            // Show image preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement("img");
+                img.src = e.target.result;
+                previewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type === "application/pdf") {
+            // Show PDF placeholder
+            previewContainer.innerHTML = `<p style="color:#555;">📄 PDF selected: ${file.name}</p>`;
+        } else {
+            previewContainer.innerHTML = `<p style="color:red;">Unsupported file format</p>`;
+            return;
+        }
+
+        // Add remove button
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "Remove File";
+        removeBtn.className = "remove-btn";
+        removeBtn.onclick = function() {
+            document.getElementById("prescriptionImage").value = "";
+            previewContainer.innerHTML = "";
+        };
+        previewContainer.appendChild(removeBtn);
+    });
+    </script>
+    <script>
+    function showTab(tab) {
+        // Sections
+        document.getElementById('nearbySection').style.display = (tab === 'nearby') ? 'block' : 'none';
+        document.getElementById('allSection').style.display = (tab === 'all') ? 'block' : 'none';
+
+        // Tabs
+        document.getElementById('nearbyTab').classList.toggle('active', tab === 'nearby');
+        document.getElementById('allTab').classList.toggle('active', tab === 'all');
+    }
+    </script>
+    <script>
+    document.getElementById('pharmacySearch').addEventListener('keyup', function() {
+        let searchValue = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#allPharmaciesTable tbody tr');
+
+        rows.forEach(row => {
+            let text = row.innerText.toLowerCase();
+            row.style.display = text.includes(searchValue) ? '' : 'none';
+        });
+    });
+    </script>
+
 </body>
 </html>

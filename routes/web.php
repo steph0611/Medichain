@@ -8,6 +8,8 @@ use App\Http\Controllers\RegCController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PrescriptionController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderStatusController;
+
 
 // ---------------------------
 // Initial screen & Login
@@ -85,12 +87,23 @@ Route::post('/registerC', [RegCController::class, 'register'])->name('register.p
 Route::get('/registerS', [RegSController::class, 'showRegisterSForm'])->name('registerS');
 Route::post('/registerS', [RegSController::class, 'register'])->name('register.post');
 
-// ---------------------------
-// Orders
-// ---------------------------
-Route::get('/orders', function () {
-    return view('order');
-})->name('orders');
 
 
-Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+Route::post('/prescription/upload', [PrescriptionController::class, 'upload'])
+    ->name('prescription.upload');
+
+Route::post('/update-location', [App\Http\Controllers\LocationController::class, 'update'])->middleware('auth');
+
+
+
+Route::middleware(['auth:customer'])->group(function () {
+    Route::get('/orders', [OrderStatusController::class, 'index']);
+    Route::post('/orders', [OrderStatusController::class, 'store'])->name('orders.store');
+    Route::post('/orders/{id}/status', [OrderStatusController::class, 'updateStatus'])->name('orders.updateStatus');
+});
+
+Route::middleware(['web'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/orders', [OrderStatusController::class, 'index']);
+    Route::post('/orders', [OrderStatusController::class, 'store']);
+});

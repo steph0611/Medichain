@@ -4,27 +4,29 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Hash; // ✅ Add this
+use Illuminate\Support\Facades\Hash;
 
 class RegSController extends Controller
 {
     protected $supabaseUrl = 'https://zazdljyechhzsiodnvts.supabase.co';
     protected $supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphemRsanllY2hoenNpb2RudnRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjE2MzMsImV4cCI6MjA2ODU5NzYzM30.OZLL_quXsqD2PJEtyQjSBOR9SaZBVXvaTfoAcBYCZTM';
 
+    // Show pharmacy registration form
     public function showRegisterSForm()
     {
         return view('registerS');
     }
 
+    // Handle registration
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
-            'shop_name' => 'required|string',
-            'location' => 'required|string',
-            'city' => 'required|string',
-            'phone' => 'required|string',
-            'user_name' => 'required|string',
+            'name' => 'required|string|max:100',
+            'shop_name' => 'required|string|max:100',
+            'location' => 'required|string|max:150',
+            'city' => 'required|string|max:50',
+            'phone' => 'required|string|max:15',
+            'user_name' => 'required|string|max:50',
             'password' => 'required|string|min:6',
             'api_key' => 'required|string',
             'url' => 'required|string'
@@ -54,10 +56,26 @@ class RegSController extends Controller
                 return back()->withErrors(['Username already exists']);
             }
 
-            // ✅ Hash the password before sending to Supabase
+            // Hash the password
             $hashedPassword = Hash::make($request->password);
 
-            // Insert new shop data
+            // Fetch latitude & longitude using Nominatim from city
+            $cityQuery = $request->city . ', Sri Lanka';
+            $httpClient = new Client(['headers' => ['User-Agent' => 'Medichain/1.0']]);
+            $nominatimUrl = "https://nominatim.openstreetmap.org/search?q=" . urlencode($cityQuery) . "&format=json&limit=1";
+
+            try {
+                $response = $httpClient->get($nominatimUrl);
+                $data = json_decode($response->getBody(), true);
+
+                $latitude = $data[0]['lat'] ?? null;
+                $longitude = $data[0]['lon'] ?? null;
+            } catch (\Exception $e) {
+                $latitude = null;
+                $longitude = null;
+            }
+
+            // Insert new shop into Supabase
             $client->post('/rest/v1/Shop', [
                 'json' => [
                     'name' => $request->name,
@@ -68,7 +86,9 @@ class RegSController extends Controller
                     'user_name' => $request->user_name,
                     'password' => $hashedPassword,
                     'api_key' => $request->api_key,
-                    'url' => $request->url
+                    'url' => $request->url,
+                    'latitude' => $latitude,
+                    'longitude' => $longitude
                 ]
             ]);
 

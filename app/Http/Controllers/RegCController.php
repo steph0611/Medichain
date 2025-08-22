@@ -14,11 +14,13 @@ class RegCController extends Controller
     protected $supabaseUrl = 'https://zazdljyechhzsiodnvts.supabase.co';
     protected $supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphemRsanllY2hoenNpb2RudnRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjE2MzMsImV4cCI6MjA2ODU5NzYzM30.OZLL_quXsqD2PJEtyQjSBOR9SaZBVXvaTfoAcBYCZTM';
 
+    // Show registration form
     public function showRegisterCForm()
     {
         return view('registerC');
     }
 
+    // Handle registration
     public function register(Request $request)
     {
         // Validate incoming data
@@ -31,6 +33,9 @@ class RegCController extends Controller
             'province'  => 'required|string|max:50',
             'district'  => 'required|string|max:50',
             'city'      => 'required|string|max:50',
+            'address'   => 'required|string|max:150',
+            'latitude'  => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
         ]);
 
         $client = new Client([
@@ -44,30 +49,38 @@ class RegCController extends Controller
         ]);
 
         try {
-            // Check if username already exists in Supabase
+            // Check if username or email already exists
+            $orQuery = "(username.eq.{$request->username},email.eq.{$request->email})";
             $checkResponse = $client->get('/rest/v1/customer', [
-                'query' => ['username' => 'eq.' . $request->username, 'select' => 'customer_id']
+                'query' => [
+                    'or' => $orQuery,
+                    'select' => 'customer_id,username,email'
+                ]
             ]);
 
             $existing = json_decode($checkResponse->getBody(), true);
             if (!empty($existing)) {
-                return back()->withErrors(['username' => 'Username already exists']);
+                return back()->withErrors(['error' => 'Username or email already exists']);
             }
 
             // Generate email verification token
             $token = Str::random(40);
 
-            // Save user with hashed password and email_verified = false
+            // Save user in Supabase
             $client->post('/rest/v1/customer', [
                 'json' => [
                     'full_name' => $request->full_name,
                     'username'  => $request->username,
                     'email'     => $request->email,
-                    'password'  => Hash::make($request->password), // Hash password
+                    'password'  => Hash::make($request->password),
                     'phone'     => $request->phone,
                     'province'  => $request->province,
                     'district'  => $request->district,
                     'city'      => $request->city,
+                    'address'   => $request->address,
+                    // ✅ Cast latitude/longitude to float to match DB type
+                    'latitude'  => $request->latitude !== null ? floatval($request->latitude) : null,
+                    'longitude' => $request->longitude !== null ? floatval($request->longitude) : null,
                     'email_verified' => false,
                     'verification_token' => $token,
                 ]
@@ -79,8 +92,8 @@ class RegCController extends Controller
             // Send verification email
             Mail::to($request->email)->send(new VerifyEmailMail($verifyUrl));
 
-            // Redirect to verify notice page using named route
-            return redirect()->route('verify.notice')->with('success', 'Account created. Please verify your email before logging in.');
+            return redirect()->route('verify.notice')
+                ->with('success', 'Account created. Please verify your email before logging in.');
 
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Registration failed: ' . $e->getMessage()]);
