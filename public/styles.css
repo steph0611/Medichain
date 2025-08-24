@@ -1,0 +1,215 @@
+/* Reset and base */
+* {
+    box-sizing: border-box;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f9;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+/* Left Side with background image */
+.left {
+    flex: 1;
+    background: url('/images/backimg1.png') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 40px;
+    color: white;
+}
+
+.left .brand h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    color: #ffffff;
+}
+
+.left .brand p {
+    font-size: 1rem;
+    margin-top: 10px;
+    color: #ffffff;
+    line-height: 1.5;
+}
+
+/* Right Form Section */
+.right {
+    flex: 1;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+/* Register Form */
+.form-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.form-container h2 {
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #222;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    transition: border 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border: 1px solid #007bff;
+    outline: none;
+}
+
+.form-container button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.form-container button:hover {
+    background-color: #0056b3;
+}
+
+/* Login Link under the form */
+.form-container .login-link {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.form-container .login-link a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.form-container .login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Messages */
+.error {
+    background: #ffe0e0;
+    padding: 10px;
+    border-radius: 5px;
+    color: red;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.success {
+    background: #e0ffe0;
+    padding: 10px;
+    border-radius: 5px;
+    color: green;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+/* Login Form (if used separately) */
+.login-form {
+    width: 100%;
+    max-width: 350px;
+}
+
+.login-form h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.login-form .form-group {
+    margin-bottom: 15px;
+}
+
+.login-form button {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.login-form button:hover {
+    background-color: #0056b3;
+}
+
+.login-form .forgot {
+    text-align: right;
+    margin-top: 10px;
+}
+
+.login-form .forgot a {
+    font-size: 13px;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.login-form .register {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.login-form .register a {
+    color: #28a745;
+    text-decoration: none;
+}
+
+/* Responsive */
+@media(max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+
+    .left {
+        display: none;
+    }
+
+    .right {
+        flex: none;
+        height: 100vh;
+    }
+}
