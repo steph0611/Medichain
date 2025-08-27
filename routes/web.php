@@ -7,15 +7,16 @@ use App\Http\Controllers\RegSController;
 use App\Http\Controllers\RegCController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PrescriptionController;
-use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderStatusController;
-
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\PharmacyDashboardController;
+use App\Http\Controllers\PharmacyController;
+use App\Http\Controllers\HistoryController;
 
 // ---------------------------
 // Initial screen & Login
 // ---------------------------
 Route::get('/', [AuthController::class, 'showLoginForm']);
-
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.check');
 
@@ -30,43 +31,33 @@ Route::get('/verify-notice', function () {
 // ---------------------------
 // Dashboard
 // ---------------------------
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware('web')
-    ->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 // ---------------------------
 // Pharmacy Upload Routes
 // ---------------------------
 Route::get('/pharmacy/upload/{id}', [PrescriptionController::class, 'showUploadForm'])
     ->name('pharmacy.upload.form');
+
 Route::post('/pharmacy/upload/{id}', [PrescriptionController::class, 'uploadPrescription'])
     ->name('pharmacy.upload.submit');
 
-// ---------------------------
-// Pharmacy Dashboard & Prescriptions
-// ---------------------------
-Route::get('/pharmacy/{shop_id}/dashboard', [PrescriptionController::class, 'viewDashboard'])
-    ->name('pharmacy.dashboard');
 
-// Status update (Pending → Accepted → Ready → Delivered)
-Route::put('/prescriptions/{id}/status', [PrescriptionController::class, 'updateStatus'])
-    ->name('prescriptions.updateStatus');
+// Pharmacy Dashboard
+Route::get('/pharmacy/{shop_id}/dashboard', [PharmacyDashboardController::class, 'index'])->name('pharmacy.dashboard');
 
-// Mark processed (legacy support, optional)
-Route::post('/prescription/{id}/process', [PrescriptionController::class, 'markProcessed'])
-    ->name('prescription.process');
+// Update status
+Route::patch('/pharmacy/prescriptions/{id}/status', [PharmacyDashboardController::class, 'updateStatus'])->name('pharmacy.updateStatus');
 
-// Delete prescription
-Route::delete('/prescription/{id}/delete', [PrescriptionController::class, 'delete'])
-    ->name('prescription.delete');
 
 // ---------------------------
 // Logout
 // ---------------------------
-Route::post('/logout', function () {
+Route::get('/logout', function () {
     Session::forget('user');
     return redirect('/login')->with('success', 'You have been logged out.');
 })->name('logout');
+
 
 // ---------------------------
 // User Type Selection
@@ -87,23 +78,51 @@ Route::post('/registerC', [RegCController::class, 'register'])->name('register.p
 Route::get('/registerS', [RegSController::class, 'showRegisterSForm'])->name('registerS');
 Route::post('/registerS', [RegSController::class, 'register'])->name('register.post');
 
-
-
+// ---------------------------
+// Prescription Upload (Customer)
 Route::post('/prescription/upload', [PrescriptionController::class, 'upload'])
     ->name('prescription.upload');
 
-Route::post('/update-location', [App\Http\Controllers\LocationController::class, 'update'])->middleware('auth');
+// ---------------------------
+// Update Location
+Route::post('/update-location', [LocationController::class, 'update']);
 
+// ---------------------------
+// Orders Routes (session-based protection)
+Route::group([], function () {
+    Route::get('/orders', function() {
+        $customer = session('user');
+        if (!$customer || !isset($customer['customer_id'])) {
+            return redirect('/login')->with('error', 'Please login first.');
+        }
+        return app(OrderStatusController::class)->index();
+    })->name('orders.index');
 
+    Route::post('/orders', function() {
+        $customer = session('user');
+        if (!$customer || !isset($customer['customer_id'])) {
+            return redirect('/login')->with('error', 'Please login first.');
+        }
+        return app(OrderStatusController::class)->store();
+    })->name('orders.store');
 
-Route::middleware(['auth:customer'])->group(function () {
-    Route::get('/orders', [OrderStatusController::class, 'index']);
-    Route::post('/orders', [OrderStatusController::class, 'store'])->name('orders.store');
-    Route::post('/orders/{id}/status', [OrderStatusController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::post('/orders/{id}/status', function($id) {
+        $customer = session('user');
+        if (!$customer || !isset($customer['customer_id'])) {
+            return redirect('/login')->with('error', 'Please login first.');
+        }
+        return app(OrderStatusController::class)->updateStatus($id);
+    })->name('orders.updateStatus');
 });
 
-Route::middleware(['web'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/orders', [OrderStatusController::class, 'index']);
-    Route::post('/orders', [OrderStatusController::class, 'store']);
-});
+
+
+Route::get('/pharmacies', [PharmacyController::class, 'index'])->name('pharmacies.index');
+Route::get('/pharmacies/{id}', [PharmacyController::class, 'show'])->name('pharmacy.show');
+Route::get('/pharmacies/{id}/orders', [PharmacyController::class, 'orders'])->name('pharmacy.orders');
+
+
+
+
+Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+

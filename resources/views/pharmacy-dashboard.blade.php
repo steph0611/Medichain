@@ -2,155 +2,201 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pharmacy Dashboard</title>
-    <link rel="stylesheet" href="{{ asset('styles5.css') }}">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+        }
+        .sidebar {
+            min-width: 220px;
+            max-width: 220px;
+            background: #0d6efd;
+            color: #fff;
+            min-height: 100vh;
+            position: fixed;
+        }
+        .sidebar .nav-link {
+            color: #fff;
+            font-weight: 500;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+        }
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .main-content {
+            margin-left: 220px;
+            padding: 2rem;
+        }
+        .dashboard-title {
+            font-size: 2rem;
+            color: #0d6efd;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f5ff;
+            transform: scale(1.01);
+            transition: all 0.3s ease;
+        }
+        .btn {
+            transition: all 0.3s ease;
+            border-radius: 30px;
+            padding: 4px 14px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .badge {
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            animation: popIn 0.5s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        /* Sidebar icons + spacing */
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo">MediChain</div>
-        <ul class="menu">
-            <li><a href="#">Dashboard</a></li>
-            <li><a href="#">Prescriptions</a></li>
-            <li><a href="#">Inventory</a></li>
-            <li><a href="#">Orders</a></li>
-            <li><a href="#">Settings</a></li>
-        </ul>
+
+<!-- Sidebar -->
+<div class="sidebar d-flex flex-column p-3">
+    <div class="text-center mb-4">
+        <img src="{{ asset('images/logo.png') }}" alt="Medichain Logo" style="max-width: 150px;">
     </div>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link active" href="#"><i class="bi bi-house"></i> Dashboard</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="bi bi-bag"></i> Orders</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="bi bi-people"></i> Patients</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><i class="bi bi-gear"></i> Settings</a>
+        </li>
+        <li class="nav-item mt-auto">
+            <a class="nav-link" href="{{ route('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </li>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Header -->
-        <div class="header">
-            <h1>Welcome, {{ $pharmacy['shop_name'] }}</h1>
-            <p>Manage all your prescriptions in one place.</p>
-        </div>
 
-        <!-- Flash Messages -->
-        @if(session('success'))
-            <div class="alert success">{{ session('success') }}</div>
-        @endif
-        @if(session('error'))
-            <div class="alert error">{{ session('error') }}</div>
-        @endif
+    </ul>
+</div>
 
-        <!-- Pharmacy Info -->
-        <div class="info-cards">
-            <div class="card">
-                <h2>📍 Location</h2>
-                <p>{{ $pharmacy['city'] ?? 'N/A' }}</p>
-            </div>
-            <div class="card">
-                <h2>📞 Contact</h2>
-                <p>{{ $pharmacy['phone'] ?? 'N/A' }}</p>
-            </div>
-            <div class="card">
-                <h2>✉️ Email</h2>
-                <p>{{ $pharmacy['email'] ?? 'N/A' }}</p>
-            </div>
-        </div>
 
-        <!-- Prescriptions Table -->
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">📋 Uploaded Prescriptions</h2>
+<!-- Main Content -->
+<div class="main-content">
+    <h2 class="mb-4 fw-bold dashboard-title">
+        Pharmacy Dashboard - {{ $pharmacy['shop_name'] ?? 'Pharmacy' }}
+    </h2>
 
-            @if(count($prescriptions) === 0)
-                <p class="text-gray-600">No prescriptions uploaded yet.</p>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full border border-gray-200 rounded-lg text-sm">
-                        <thead class="bg-blue-600 text-white">
-                            <tr>
-                                <th class="py-3 px-4 text-left">Patient Name</th>
-                                <th class="py-3 px-4 text-left">Doctor Name</th>
-                                <th class="py-3 px-4 text-left">Date</th>
-                                <th class="py-3 px-4 text-left">Phone</th>
-                                <th class="py-3 px-4 text-left">Email</th>
-                                <th class="py-3 px-4 text-left">Address</th>
-                                <th class="py-3 px-4 text-left">Instructions</th>
-                                <th class="py-3 px-4 text-left">Image</th>
-                                <th class="py-3 px-4 text-left">Uploaded At</th>
-                                <th class="py-3 px-4 text-left">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            @foreach($prescriptions as $prescription)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-4">{{ $prescription['patient_name'] }}</td>
-                                    <td class="py-3 px-4">{{ $prescription['doctor_name'] }}</td>
-                                    <td class="py-3 px-4">{{ \Carbon\Carbon::parse($prescription['prescription_date'])->format('Y-m-d') }}</td>
-                                    <td class="py-3 px-4">{{ $prescription['phone'] }}</td>
-                                    <td class="py-3 px-4 text-blue-700">{{ $prescription['email'] }}</td>
-                                    <td class="py-3 px-4">{{ $prescription['address'] }}</td>
-                                    <td class="py-3 px-4">{{ $prescription['instructions'] ?? '-' }}</td>
-                                    <td class="py-3 px-4">
-                                        @if(str_contains($prescription['image_type'], 'pdf'))
-                                            <a href="data:{{ $prescription['image_type'] }};base64,{{ $prescription['image_data'] }}"
-                                               target="_blank"
-                                               class="text-blue-600 hover:underline">View PDF</a>
-                                        @else
-                                            <img src="data:{{ $prescription['image_type'] }};base64,{{ $prescription['image_data'] }}"
-                                                 alt="Prescription Image"
-                                                 class="w-24 h-auto border rounded cursor-pointer"
-                                                 onclick="openModal(this.src)" />
-                                        @endif
-                                    </td>
-                                    <td class="py-3 px-4">{{ \Carbon\Carbon::parse($prescription['uploaded_at'])->format('Y-m-d H:i') }}</td>
+    {{-- Alerts --}}
+    @if(session('success'))
+        <div class="alert alert-success shadow-sm rounded-pill px-4 py-2">{{ session('success') }}</div>
+    @elseif(session('error'))
+        <div class="alert alert-danger shadow-sm rounded-pill px-4 py-2">{{ session('error') }}</div>
+    @endif
 
-                                    <!-- NEW: Status Update -->
-                                    <td class="py-3 px-4">
-                                        <form action="{{ route('prescriptions.updateStatus', $prescription['prescription_id']) }}" method="POST" class="flex space-x-2">
-                                            @csrf
-                                            @method('PUT')
-                                            <select name="status" class="border rounded px-2 py-1 text-sm">
-                                                <option value="Pending" {{ $prescription['status'] == 'Pending' ? 'selected' : '' }}>Pending</option>
-                                                <option value="Accepted" {{ $prescription['status'] == 'Accepted' ? 'selected' : '' }}>Accepted</option>
-                                                <option value="Ready" {{ $prescription['status'] == 'Ready' ? 'selected' : '' }}>Ready</option>
-                                                <option value="Delivered" {{ $prescription['status'] == 'Delivered' ? 'selected' : '' }}>Delivered</option>
-                                            </select>
-                                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-                                                Update
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @endif
-        </div>
-    </div>
+    {{-- Prescriptions Table --}}
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <table class="table table-hover align-middle text-center">
+                <thead class="table-primary">
+                    <tr>
+                        <th>👤 Patient</th>
+                        <th>🩺 Doctor</th>
+                        <th>📅 Date</th>
+                        <th>📄 Prescription</th>
+                        <th>📖 Instructions</th>
+                        <th>Status</th>
+                        <th>⚡ Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($prescriptions as $p)
+                        @php $status = $p['status']; @endphp
+                        <tr>
+                            <td><strong>{{ $p['patient_name'] }}</strong></td>
+                            <td>{{ $p['doctor_name'] }}</td>
+                            <td>{{ \Carbon\Carbon::parse($p['prescription_date'])->format('d M Y') }}</td>
+                            <td>
+                                @if($p['image_data'] ?? false)
+                                    <a href="data:{{ $p['image_type'] }};base64,{{ $p['image_data'] }}" target="_blank" 
+                                       class="btn btn-outline-primary btn-sm">View</a>
+                                @else
+                                    <span class="text-muted fst-italic">No Image</span>
+                                @endif
+                            </td>
+                            <td>{{ $p['instructions'] ?? '—' }}</td>
+                            <td>
+                                <span class="badge 
+                                    @if($status === 'Pending') bg-secondary
+                                    @elseif($status === 'Accepted') bg-success
+                                    @elseif($status === 'Ready') bg-warning text-dark
+                                    @elseif($status === 'Delivered') bg-primary
+                                    @elseif($status === 'Cancelled') bg-danger
+                                    @else bg-dark
+                                    @endif">
+                                    {{ $status }}
+                                </span>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ route('pharmacy.updateStatus', $p['id']) }}" 
+                                      class="d-flex flex-wrap justify-content-center gap-2">
+                                    @csrf
+                                    @method('PATCH')
 
-    <!-- Image Preview Modal -->
-    <div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div class="relative bg-white p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto">
-            <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-black text-2xl">&times;</button>
-            <img id="modalImage" src="" alt="Prescription Preview" class="max-w-full max-h-[80vh] rounded">
+                                    @if($status === 'Pending')
+                                        <button type="submit" name="status" value="Accepted" class="btn btn-success btn-sm">✅ Accept</button>
+                                        <button type="submit" name="status" value="Cancelled" class="btn btn-danger btn-sm">❌ Cancel</button>
+                                    @elseif($status === 'Accepted')
+                                        <button type="submit" name="status" value="Ready" class="btn btn-warning btn-sm">📦 Ready</button>
+                                        <button type="submit" name="status" value="Delivered" class="btn btn-primary btn-sm">🚚 Delivered</button>
+                                    @elseif($status === 'Ready')
+                                        <button type="submit" name="status" value="Delivered" class="btn btn-primary btn-sm">🚚 Delivered</button>
+                                    @else
+                                        <button type="submit" name="status" value="Pending" class="btn btn-secondary btn-sm">⏳ Pending</button>
+                                        <button type="submit" name="status" value="Accepted" class="btn btn-success btn-sm">✅ Accept</button>
+                                        <button type="submit" name="status" value="Ready" class="btn btn-warning btn-sm">📦 Ready</button>
+                                        <button type="submit" name="status" value="Delivered" class="btn btn-primary btn-sm">🚚 Delivered</button>
+                                        <button type="submit" name="status" value="Cancelled" class="btn btn-danger btn-sm">❌ Cancel</button>
+                                    @endif
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center text-muted fst-italic">✨ No prescriptions found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
 
-    <script>
-        // Open modal with clicked image
-        function openModal(src) {
-            document.getElementById("modalImage").src = src;
-            document.getElementById("imageModal").classList.remove("hidden");
-        }
+<!-- Bootstrap icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-        // Close modal
-        function closeModal() {
-            document.getElementById("imageModal").classList.add("hidden");
-            document.getElementById("modalImage").src = "";
-        }
-
-        // Close modal when clicking outside the image
-        document.getElementById("imageModal").addEventListener("click", function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-    </script>
 </body>
 </html>

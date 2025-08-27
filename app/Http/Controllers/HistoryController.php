@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
-class OrderStatusController extends Controller
+class HistoryController extends Controller
 {
     protected $supabaseUrl = 'https://zazdljyechhzsiodnvts.supabase.co';
     protected $supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphemRsanllY2hoenNpb2RudnRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwMjE2MzMsImV4cCI6MjA2ODU5NzYzM30.OZLL_quXsqD2PJEtyQjSBOR9SaZBVXvaTfoAcBYCZTM';
@@ -21,28 +21,18 @@ class OrderStatusController extends Controller
 
         $customerId = $customer['customer_id'];
 
-        // Fetch orders for this customer
+        // ✅ Fetch only Delivered orders
         $response = Http::withHeaders([
             'apikey' => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
         ])->get($this->supabaseUrl . '/rest/v1/orders', [
             'customer_id' => "eq.$customerId",
+            'status' => 'eq.Delivered',
             'order' => 'created_at.desc',
         ]);
 
-        $orders = $response->json();
+        $recentOrders = $response->json();
 
-        // Separate ongoing vs recent
-        // Ongoing = not yet delivered (Pending, Accepted, Ready)
-        $ongoingOrders = array_filter($orders, fn ($o) =>
-            in_array($o['status'], ['Pending', 'Accepted', 'Ready'])
-        );
-
-        // Recent = finished (Delivered)
-        $recentOrders = array_filter($orders, fn ($o) =>
-            $o['status'] === 'Delivered'
-        );
-
-        return view('orders.index', compact('ongoingOrders', 'recentOrders'));
+        return view('history.index', compact('recentOrders'));
     }
 }

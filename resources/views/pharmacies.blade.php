@@ -2,165 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Dashboard - My Orders</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans">
-
-    <div class="topbar">
-        <div class="logo-section">
-            <span class="logo-main">MediChain</span>
-            <span class="logo-sub">Customer Portal</span>
-        </div>
-
-        <div class="hamburger" onclick="toggleMobileMenu()">☰</div>
-
-        <nav class="main-nav" id="mobileMenu">
-            <a href="{{ url('/dashboard') }}" class="nav-item ">Dashboard</a>
-            <a href="{{ url('/orders') }}" class="nav-item active">My Orders</a>
-            <a href="{{ url('/pharmacies') }}" class="nav-item">Pharmacies</a>
-            <a href="{{ url('/history') }}" class="nav-item">History</a>
-        </nav>
-
-        <div class="user-section">
-            <div class="avatar-container">
-                <div class="avatar-btn" onclick="toggleDropdown()">
-                    {{ strtoupper(substr(session('user')['full_name'] ?? session('user')['username'], 0, 1)) }}
-                </div>
-                <div class="dropdown" id="userDropdown">
-                    <div class="dropdown-header">
-                        <div class="dropdown-avatar">
-                            {{ strtoupper(substr(session('user')['full_name'] ?? session('user')['username'], 0, 1)) }}
-                        </div>
-                        <div class="dropdown-user-info">
-                            <span><strong>{{ session('user')['full_name'] ?? 'Guest' }}</strong></span>
-                            <span style="font-size: 0.9em; color: #666;">{{ session('user')['email'] ?? 'email@example.com' }}</span>
-                        </div>
-                    </div>
-                    <a href="/profile" class="dropdown-link">View Profile</a>
-                    <a href="/settings" class="dropdown-link">Settings</a>
-                    <div class="dropdown-divider"></div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="dropdown-link" style="color: #d00;">Logout</button>
-                    </form>
-                </div>
-            </div>
-            <div class="user-info">
-                <div class="user-name">
-                    {{ session('user')['full_name'] }}
-                </div>
-                <div class="user-role">Patient</div>
-            </div>
-        </div>
-    </div>
-
-    <div style="display: flex;">
-        <div class="sidebar">
-            <div class="mb-4">
-                <a href="{{ url('/dashboard') }}" class="sidebar-link active">Dashboard</a>
-                <a href="#" class="sidebar-link">Upload Prescription</a>
-                <a href="{{ url('/pharmacies') }}" class="sidebar-link">Find Pharmacy</a>
-            </div>
-            <div class="mt-8">
-                <a href="{{ url('/orders') }}" class="sidebar-link">My Orders</a>
-                <a href="{{ url('/payment-methods') }}" class="sidebar-link">Payment Methods</a>
-                <a href="{{ url('/addresses') }}" class="sidebar-link">Addresses</a>
-                <a href="{{ url('/settings') }}" class="sidebar-link">Settings</a>
-            </div>
-        </div>
-
-        <!-- ✅ Main Content -->
-        <main class="flex-1 p-8">
-
-            <h1 class="text-3xl font-bold mb-8 text-gray-800">📦 My Orders</h1>
-
-            <!-- ✅ Ongoing Orders -->
-            <section class="mb-10">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Ongoing Orders</h2>
-                @if(count($ongoingOrders) > 0)
-                    <div class="bg-white shadow rounded-lg overflow-hidden">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100 text-gray-700 uppercase text-sm">
-                                    <th class="p-3 text-left">Order ID</th>
-                                    <th class="p-3 text-left">Status</th>
-                                    <th class="p-3 text-left">Created At</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($ongoingOrders as $order)
-                                    <tr class="border-b hover:bg-gray-50 transition">
-                                        <td class="p-3 font-medium text-gray-800">{{ $order['order_id'] }}</td>
-                                        <td class="p-3">
-                                            <span class="px-2 py-1 rounded-full text-white text-sm
-                                                @if($order['status'] === 'pending') bg-yellow-500
-                                                @elseif($order['status'] === 'processing') bg-blue-500
-                                                @elseif($order['status'] === 'completed') bg-green-500
-                                                @elseif($order['status'] === 'cancelled') bg-red-500
-                                                @else bg-gray-500
-                                                @endif">
-                                                {{ ucfirst($order['status']) }}
-                                            </span>
-                                        </td>
-                                        <td class="p-3 text-gray-600">
-                                            {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y H:i') }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <p class="text-gray-500 mt-2">No ongoing orders.</p>
-                @endif
-            </section>
-
-            <!-- ✅ Recent Orders -->
-            <section>
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Recent Orders</h2>
-                @if(count($recentOrders) > 0)
-                    <div class="bg-white shadow rounded-lg overflow-hidden">
-                        <table class="w-full border-collapse">
-                            <thead>
-                                <tr class="bg-gray-100 text-gray-700 uppercase text-sm">
-                                    <th class="p-3 text-left">Order ID</th>
-                                    <th class="p-3 text-left">Status</th>
-                                    <th class="p-3 text-left">Created At</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($recentOrders as $order)
-                                    <tr class="border-b hover:bg-gray-50 transition">
-                                        <td class="p-3 font-medium text-gray-800">{{ $order['order_id'] }}</td>
-                                        <td class="p-3">
-                                            <span class="px-2 py-1 rounded-full text-white text-sm
-                                                @if($order['status'] === 'pending') bg-yellow-500
-                                                @elseif($order['status'] === 'processing') bg-blue-500
-                                                @elseif($order['status'] === 'completed') bg-green-500
-                                                @elseif($order['status'] === 'cancelled') bg-red-500
-                                                @else bg-gray-500
-                                                @endif">
-                                                {{ ucfirst($order['status']) }}
-                                            </span>
-                                        </td>
-                                        <td class="p-3 text-gray-600">
-                                            {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y H:i') }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <p class="text-gray-500 mt-2">No recent orders.</p>
-                @endif
-            </section>
-
-        </main>
-    </div>
-
+    <title>All Pharmacies</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f9fafb;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 40px;
+        }
+        table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        th {
+            background: #f3f4f6;
+            color: #374151;
+            text-align: center;
+        }
+        td {
+            vertical-align: middle;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #1e40af;
+        }
+        .empty-row {
+            text-align: center;
+            color: #6b7280;
+        }
+    </style>
     <style>
         .modal {
             display: none;
@@ -566,8 +447,123 @@
 
        
     </style>
+</head>
+<body>
 
-    <script>
+    <div class="topbar">
+        <div class="logo-section">
+            <span class="logo-main">MediChain</span>
+            <span class="logo-sub">Customer Portal</span>
+        </div>
+
+        <div class="hamburger" onclick="toggleMobileMenu()">☰</div>
+
+        <nav class="main-nav" id="mobileMenu">
+            <a href="{{ url('/dashboard') }}" class="nav-item ">Dashboard</a>
+            <a href="{{ url('/orders') }}" class="nav-item">My Orders</a>
+            <a href="{{ url('/pharmacies') }}" class="nav-item active">Pharmacies</a>
+            <a href="{{ url('/history') }}" class="nav-item">History</a>
+        </nav>
+
+        <div class="user-section">
+            <div class="avatar-container">
+                <div class="avatar-btn" onclick="toggleDropdown()">
+                    {{ strtoupper(substr(session('user')['full_name'] ?? session('user')['username'], 0, 1)) }}
+                </div>
+                <div class="dropdown" id="userDropdown">
+                    <div class="dropdown-header">
+                        <div class="dropdown-avatar">
+                            {{ strtoupper(substr(session('user')['full_name'] ?? session('user')['username'], 0, 1)) }}
+                        </div>
+                        <div class="dropdown-user-info">
+                            <span><strong>{{ session('user')['full_name'] ?? 'Guest' }}</strong></span>
+                            <span style="font-size: 0.9em; color: #666;">{{ session('user')['email'] ?? 'email@example.com' }}</span>
+                        </div>
+                    </div>
+                    <a href="/profile" class="dropdown-link">View Profile</a>
+                    <a href="/settings" class="dropdown-link">Settings</a>
+                    <div class="dropdown-divider"></div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="dropdown-link" style="color: #d00;">Logout</button>
+                    </form>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-name">
+                    {{ session('user')['full_name'] }}
+                </div>
+                <div class="user-role">Patient</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex;">
+        <div class="sidebar">
+            <div class="mb-4">
+                <a href="{{ url('/dashboard') }}" class="sidebar-link active">Dashboard</a>
+                <a href="#" class="sidebar-link">Upload Prescription</a>
+                <a href="{{ url('/pharmacies') }}" class="sidebar-link">Find Pharmacy</a>
+            </div>
+            <div class="mt-8">
+                <a href="{{ url('/orders') }}" class="sidebar-link">My Orders</a>
+                <a href="{{ url('/payment-methods') }}" class="sidebar-link">Payment Methods</a>
+                <a href="{{ url('/addresses') }}" class="sidebar-link">Addresses</a>
+                <a href="{{ url('/settings') }}" class="sidebar-link">Settings</a>
+            </div>
+        </div>
+<div class="container">
+    <h2 class="mb-4">Available Pharmacies</h2>
+
+    <table id="allPharmaciesTable" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Pharmacy</th>
+                <th>Location</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Distance</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($pharmacies as $pharmacy)
+                <tr>
+                    <td>{{ $pharmacy['shop_name'] }}</td>
+                    <td>{{ $pharmacy['location'] ?? 'N/A' }}</td>
+                    <td>{{ $pharmacy['phone'] ?? 'N/A' }}</td>
+                    <td>{{ $pharmacy['city'] ?? 'N/A' }}</td>
+                    <td>
+                        @if(!empty($pharmacy['distance']))
+                            {{ number_format($pharmacy['distance'], 2) }} km
+                        @else
+                            <span style="color: #888;">unknown</span>
+                        @endif
+                    </td>
+                    <td>
+                        <button class="btn btn-primary"
+                                onclick="openModal({{ $pharmacy['shop_id'] }}, '{{ $pharmacy['shop_name'] }}')">
+                            Upload Prescription
+                        </button>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="empty-row">No pharmacies available.</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function openModal(shopId, shopName) {
+        alert("Open upload modal for " + shopName + " (ID: " + shopId + ")");
+        // Replace alert with your modal logic
+    }
+</script>
+
+ <script>
         function toggleDropdown() {
             document.getElementById("userDropdown").classList.toggle("show");
         }
