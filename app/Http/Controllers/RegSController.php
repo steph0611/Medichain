@@ -28,8 +28,6 @@ class RegSController extends Controller
             'phone' => 'required|string|max:15',
             'user_name' => 'required|string|max:50',
             'password' => 'required|string|min:6',
-            'api_key' => 'required|string',
-            'url' => 'required|string'
         ]);
 
         $client = new Client([
@@ -85,8 +83,6 @@ class RegSController extends Controller
                     'phone' => $request->phone,
                     'user_name' => $request->user_name,
                     'password' => $hashedPassword,
-                    'api_key' => $request->api_key,
-                    'url' => $request->url,
                     'latitude' => $latitude,
                     'longitude' => $longitude
                 ]

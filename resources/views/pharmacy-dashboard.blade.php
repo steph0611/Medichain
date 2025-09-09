@@ -43,8 +43,7 @@
         }
         .table-hover tbody tr:hover {
             background-color: #f1f5ff;
-            transform: scale(1.01);
-            transition: all 0.3s ease;
+            transition: background-color 0.3s ease;
         }
         .btn {
             transition: all 0.3s ease;
@@ -98,11 +97,8 @@
         <li class="nav-item mt-auto">
             <a class="nav-link" href="{{ route('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </li>
-
-
     </ul>
 </div>
-
 
 <!-- Main Content -->
 <div class="main-content">
@@ -141,8 +137,29 @@
                             <td>{{ \Carbon\Carbon::parse($p['prescription_date'])->format('d M Y') }}</td>
                             <td>
                                 @if($p['image_data'] ?? false)
-                                    <a href="data:{{ $p['image_type'] }};base64,{{ $p['image_data'] }}" target="_blank" 
-                                       class="btn btn-outline-primary btn-sm">View</a>
+                                    <!-- Button trigger modal -->
+                                    <button type="button" class="btn btn-outline-primary btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#imgModal{{ $p['id'] }}">
+                                        View
+                                    </button>
+
+                                    <!-- Modal -->
+                                    <div class="modal fade" id="imgModal{{ $p['id'] }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                                            <div class="modal-content p-3">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Prescription for {{ $p['patient_name'] }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <img src="data:{{ $p['image_type'] ?? 'image/png' }};base64,{{ $p['image_data'] }}" 
+                                                         class="img-fluid rounded shadow" 
+                                                         alt="Prescription Image">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 @else
                                     <span class="text-muted fst-italic">No Image</span>
                                 @endif
@@ -197,6 +214,9 @@
 
 <!-- Bootstrap icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+<!-- Bootstrap JS (needed for modals) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
