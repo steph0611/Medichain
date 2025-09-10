@@ -16,6 +16,19 @@ class AuthController extends Controller
         return view('login');
     }
 
+    /**
+     * Helper to check password dynamically:
+     * - If bcrypt hash → use Hash::check
+     * - Else → plain string comparison
+     */
+    private function checkPassword($inputPassword, $dbPassword)
+    {
+        if (strpos($dbPassword, '$2y$') === 0) {
+            return Hash::check($inputPassword, $dbPassword);
+        }
+        return $inputPassword === $dbPassword;
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -51,9 +64,15 @@ class AuthController extends Controller
                     return back()->withErrors(['Please verify your email before logging in.']);
                 }
 
-                if (!Hash::check($password, $user['password'])) {
+                if (!$this->checkPassword($password, $user['password'])) {
                     return back()->withErrors(['Incorrect password'])->withInput();
                 }
+
+                // ✅ Update last_active
+                $client->patch('/rest/v1/customer', [
+                    'query' => ['customer_id' => 'eq.' . $user['customer_id']],
+                    'json' => ['last_active' => now()->toISOString()]
+                ]);
 
                 session(['user' => $user, 'role' => 'customer']);
                 return redirect('/dashboard')->with('success', 'Customer login successful!');
@@ -69,13 +88,43 @@ class AuthController extends Controller
             if (!empty($shops)) {
                 $shop = $shops[0];
 
-                if (!Hash::check($password, $shop['password'])) {
+                if (!$this->checkPassword($password, $shop['password'])) {
                     return back()->withErrors(['Incorrect password'])->withInput();
                 }
+
+                // ✅ Update last_active
+                $client->patch('/rest/v1/Shop', [
+                    'query' => ['shop_id' => 'eq.' . $shop['shop_id']],
+                    'json' => ['last_active' => now()->toISOString()]
+                ]);
 
                 session(['user' => $shop, 'role' => 'shop']);
                 return redirect()->route('pharmacy.dashboard', ['shop_id' => $shop['shop_id']])
                     ->with('success', 'Shop login successful!');
+            }
+
+            // 👑 Try admin login (no password hashing)
+            $adminResponse = $client->get('/rest/v1/admin', [
+                'query' => ['username' => 'eq.' . $username, 'select' => '*']
+            ]);
+
+            $admins = json_decode($adminResponse->getBody()->getContents(), true);
+
+            if (!empty($admins)) {
+                $admin = $admins[0];
+
+                if ($password !== $admin['password']) {
+                    return back()->withErrors(['Incorrect password'])->withInput();
+                }
+
+                // ✅ Update last_active
+                $client->patch('/rest/v1/admin', [
+                    'query' => ['id' => 'eq.' . $admin['id']], // replace with correct PK if needed
+                    'json' => ['last_active' => now()->toISOString()]
+                ]);
+
+                session(['user' => $admin, 'role' => 'admin']);
+                return redirect('/admin/dashboard')->with('success', 'Admin login successful!');
             }
 
             return back()->withErrors(['No user found with this username'])->withInput();
@@ -128,6 +177,43 @@ class AuthController extends Controller
 
     public function logout()
     {
+        $user = session('user');
+        $role = session('role');
+
+        if ($user && $role) {
+            try {
+                $client = new Client([
+                    'base_uri' => $this->supabaseUrl,
+                    'headers' => [
+                        'apikey'        => $this->supabaseKey,
+                        'Authorization' => 'Bearer ' . $this->supabaseKey,
+                        'Accept'        => 'application/json',
+                        'Content-Type'  => 'application/json',
+                    ]
+                ]);
+
+                // 🛑 Clear last_active on logout
+                if ($role === 'customer') {
+                    $client->patch('/rest/v1/customer', [
+                        'query' => ['customer_id' => 'eq.' . $user['customer_id']],
+                        'json' => ['last_active' => null],
+                    ]);
+                } elseif ($role === 'shop') {
+                    $client->patch('/rest/v1/Shop', [
+                        'query' => ['shop_id' => 'eq.' . $user['shop_id']],
+                        'json' => ['last_active' => null],
+                    ]);
+                } elseif ($role === 'admin') {
+                    $client->patch('/rest/v1/admin', [
+                        'query' => ['id' => 'eq.' . $user['id']], // adjust if PK is different
+                        'json' => ['last_active' => null],
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Log::error("Logout update failed: " . $e->getMessage());
+            }
+        }
+
         session()->flush();
         return redirect('/login')->with('success', 'Logged out successfully!');
     }

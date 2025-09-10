@@ -13,6 +13,10 @@ use App\Http\Controllers\PharmacyDashboardController;
 use App\Http\Controllers\PharmacyController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminPharmacyController;
+use App\Http\Controllers\AdminPrescriptionController;
+use App\Http\Controllers\AdminUserController;
 
 // ---------------------------
 // Landing Page (App Info)
@@ -58,10 +62,8 @@ Route::patch('/pharmacy/prescriptions/{id}/status', [PharmacyDashboardController
 // ---------------------------
 // Logout
 // ---------------------------
-Route::get('/logout', function () {
-    Session::forget('user');
-    return redirect('/login')->with('success', 'You have been logged out.');
-})->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 
 // ---------------------------
 // User Type Selection
@@ -136,3 +138,48 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'
 // Reset Password
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
+
+
+
+
+Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+Route::get('/admin/stats', [AdminDashboardController::class, 'stats'])->name('admin.stats'); // JSON API for charts
+
+
+
+
+
+
+Route::get('/admin/pharmacies', [AdminPharmacyController::class, 'index'])->name('admin.pharmacies.index');
+Route::post('/admin/pharmacies', [AdminPharmacyController::class, 'store'])->name('admin.pharmacies.store');
+Route::delete('/admin/pharmacies/{id}', [AdminPharmacyController::class, 'destroy'])->name('admin.pharmacies.destroy');
+
+
+
+Route::get('/admin/prescriptions', [AdminPrescriptionController::class, 'index'])->name('admin.prescriptions.index');
+Route::get('/admin/prescriptions/{shop_id}', [AdminPrescriptionController::class, 'show'])->name('admin.prescriptions.show');
+
+
+
+
+
+
+// Overview Tiles page
+Route::get('/admin/users', [AdminUserController::class, 'index'])->name('admin.users.index');
+
+// Show table for a specific type: admins, pharmacies, customers
+Route::get('/admin/users/{type}', [AdminUserController::class, 'show'])->name('admin.users.show');
+
+// Add a new user
+Route::post('/admin/users/{type}', [AdminUserController::class, 'store'])->name('admin.users.store');
+
+// Delete a user
+Route::delete('/admin/users/{type}/{id}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+
+
+
+Route::prefix('admin')->group(function() {
+    Route::get('/settings', [App\Http\Controllers\AdminSettingsController::class, 'index'])->name('admin.settings.index');
+    Route::patch('/settings', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
+    Route::post('/settings/logout', [App\Http\Controllers\AdminSettingsController::class, 'logout'])->name('admin.settings.logout');
+});
