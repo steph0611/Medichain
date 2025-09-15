@@ -60,6 +60,15 @@ class AdminDashboardController extends Controller
             ]);
             $customers = json_decode((string)$customersRes->getBody(), true) ?? [];
 
+            // === Orders / Payments ===
+            $ordersRes = $client->get('/rest/v1/orders', [
+                'query' => [
+                    'select' => 'amount,created_at',
+                    'created_at' => 'gte.' . substr($oldestStart, 0, 10),
+                ],
+            ]);
+            $orders = json_decode((string)$ordersRes->getBody(), true) ?? [];
+
             // Function to increment monthly buckets
             $incMonth = function (&$buckets, $dateStr) {
                 if (!$dateStr) return;
@@ -81,6 +90,7 @@ class AdminDashboardController extends Controller
             $pharmaciesByMonth = array_map(fn($m) => ['label' => $m['label'], 'count' => 0, 'key' => $m['key']], $months);
             $prescriptionsByMonth = array_map(fn($m) => ['label' => $m['label'], 'count' => 0, 'key' => $m['key']], $months);
             $customersByMonth = array_map(fn($m) => ['label' => $m['label'], 'count' => 0, 'key' => $m['key']], $months);
+            $incomeByMonth = array_map(fn($m) => ['label' => $m['label'], 'count' => 0, 'key' => $m['key']], $months);
 
             foreach ($shops as $shop) {
                 $date = $shop['created_at'] ?? $shop['registered_at'] ?? $shop['added_at'] ?? null;
@@ -97,13 +107,23 @@ class AdminDashboardController extends Controller
                 $incMonth($customersByMonth, $date);
             }
 
-            // Dummy monthly income (replace with real payments if available)
-            $incomeByMonth = array_map(fn($m) => ['label' => $m['label'], 'count' => rand(10000, 50000)], $months);
+            // Sum orders.amount per month
+            foreach ($orders as $o) {
+                $dt = Carbon::parse($o['created_at'] ?? null);
+                $key = $dt->format('Y-m');
+                foreach ($incomeByMonth as &$m) {
+                    if ($m['key'] === $key) {
+                        $m['count'] += floatval($o['amount']);
+                        break;
+                    }
+                }
+            }
 
             // Totals
             $totalPharmacies = count($shops);
             $totalPrescriptions = count($prescriptions);
             $totalCustomers = count($customers);
+            $totalRevenue = array_sum(array_map(fn($m) => $m['count'], $incomeByMonth));
 
             // ✅ Real active users (last 5 minutes, fallback = created today)
             $activeThreshold = Carbon::now()->subMinute();
@@ -121,8 +141,6 @@ class AdminDashboardController extends Controller
                 }
                 return false;
             })->count();
-
-            $revenue = 12400;   // dummy total revenue
 
             // Recent Activity
             $activities = [];
@@ -159,7 +177,7 @@ class AdminDashboardController extends Controller
                     'prescriptions'  => $totalPrescriptions,
                     'customers'      => $totalCustomers,
                     'active_users'   => $activeUsers,
-                    'revenue'        => $revenue,
+                    'revenue'        => $totalRevenue, // updated
                 ],
                 'labels'                  => array_map(fn($m) => $m['label'], $months),
                 'pharmacies_by_month'     => array_map(fn($m) => $m['count'], $pharmaciesByMonth),

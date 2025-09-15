@@ -35,37 +35,23 @@
 
   <!-- Sidebar -->
   <aside class="w-64 bg-white shadow-md flex flex-col min-h-screen">
-    <!-- Brand / Header -->
     <div class="px-6 py-4 text-xl font-bold text-blue-700 border-b">MediChain Admin</div>
 
-    <!-- Navigation -->
     <nav class="flex-1 px-3 py-5 space-y-2 text-sm">
       <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-700 text-white font-medium hover:bg-blue-600">
         📊 Dashboard
       </a>
-      <a href="{{ route('admin.pharmacies.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
-        🏥 Pharmacies
-      </a>
-      <a href="{{ route('admin.prescriptions.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
-        💊 Prescriptions
-      </a>
-      <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
-        👥 Users
-      </a>
-      <a href="{{ route('admin.settings.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">
-        ⚙ Settings
-      </a>
+      <a href="{{ route('admin.pharmacies.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">🏥 Pharmacies</a>
+      <a href="{{ route('admin.prescriptions.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">💊 Prescriptions</a>
+      <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">👥 Users</a>
+      <a href="{{ route('admin.settings.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100">⚙ Settings</a>
     </nav>
 
-    <!-- Footer -->
     <div class="px-6 py-4 text-xs text-gray-500 border-t">© 2025 MediChain</div>
   </aside>
 
-
   <!-- Main Content -->
   <div class="flex-1 flex flex-col">
-    
-    <!-- Topbar -->
     <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center">
       <h1 class="text-lg font-semibold text-gray-700">Admin Dashboard</h1>
       <div class="flex items-center gap-3">
@@ -74,9 +60,7 @@
       </div>
     </header>
 
-    <!-- Content -->
     <main class="p-6 space-y-8">
-
       <!-- Stat Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white p-5 rounded-xl shadow" data-aos="fade-up">
@@ -98,9 +82,9 @@
         </div>
 
         <div class="bg-white p-5 rounded-xl shadow" data-aos="fade-up" data-aos-delay="300">
-          <p class="text-sm text-gray-500">Revenue</p>
-          <h2 id="revenue" class="text-3xl font-bold text-brand-orange mt-2">—</h2>
-          <span class="text-xs text-gray-400">This quarter</span>
+          <p class="text-sm text-gray-500">Monthly Income</p>
+          <h2 id="monthly-income" class="text-3xl font-bold text-brand-orange mt-2">—</h2>
+          <span class="text-xs text-gray-400">This month</span>
         </div>
       </div>
 
@@ -116,19 +100,17 @@
         </div>
       </div>
 
-      <!-- Customers & Income Row -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-xl shadow" data-aos="fade-up">
           <h3 class="text-base font-semibold mb-3">Customers Registered (Monthly)</h3>
           <canvas id="customersChart" height="200"></canvas>
         </div>
         <div class="bg-white p-6 rounded-xl shadow" data-aos="fade-up" data-aos-delay="150">
-          <h3 class="text-base font-semibold mb-3">Total Income (Monthly)</h3>
+          <h3 class="text-base font-semibold mb-3">Income Per Month</h3>
           <canvas id="incomeChart" height="200"></canvas>
         </div>
       </div>
 
-      <!-- Recent Activity -->
       <div class="bg-white p-6 rounded-xl shadow" data-aos="fade-up">
         <h3 class="text-base font-semibold mb-4">Recent Activity</h3>
         <table class="w-full text-sm">
@@ -161,8 +143,8 @@ async function fetchStats() {
         // Update stat cards
         document.getElementById('total-pharmacies').textContent = data.totals.pharmacies;
         document.getElementById('total-prescriptions').textContent = data.totals.prescriptions;
-        document.getElementById('active-users').textContent = data.totals.active_users ?? 512;
-        document.getElementById('revenue').textContent = 'Rs ' + (data.totals.revenue ?? '12.4k');
+        document.getElementById('active-users').textContent = data.totals.active_users ?? 0;
+        document.getElementById('monthly-income').textContent = 'Rs ' + (data.totals.revenue ?? '0');
 
         const labels = data.labels;
 
@@ -196,7 +178,7 @@ async function fetchStats() {
             }
         });
 
-        // Customers per month (Bar)
+        // Customers Bar Chart
         new Chart(document.getElementById('customersChart'), {
             type: 'bar',
             data: {
@@ -210,7 +192,7 @@ async function fetchStats() {
             }
         });
 
-        // Income per month (Bar)
+        // Income Bar Chart
         new Chart(document.getElementById('incomeChart'), {
             type: 'bar',
             data: {
@@ -222,9 +204,7 @@ async function fetchStats() {
                     borderRadius: 6
                 }]
             },
-            options: {
-                scales: { y: { beginAtZero: true } }
-            }
+            options: { scales: { y: { beginAtZero: true } } }
         });
 
         // Recent Activity
@@ -247,10 +227,8 @@ async function fetchStats() {
     }
 }
 
-// Fetch stats on page load
 fetchStats();
 </script>
 
 </body>
 </html>
- 

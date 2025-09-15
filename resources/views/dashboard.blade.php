@@ -58,12 +58,12 @@
 
                     <!-- Links -->
                     <div class="p-2">
-                        <a href="/profile" 
+                        <a href="/customer/profile" 
                         class="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 
                                 hover:bg-gray-100 hover:text-blue-600 transition">
                             👤 View Profile
                         </a>
-                        <a href="/settings" 
+                        <a href="/customer/settings" 
                         class="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 
                                 hover:bg-gray-100 hover:text-blue-600 transition">
                             ⚙️ Settings
@@ -95,19 +95,14 @@
     </div>
 
     <div style="display: flex;">
-        <div class="sidebar">
-            <div class="mb-4">
+            
+            <div class="sidebar">
                 <a href="{{ url('/dashboard') }}" class="sidebar-link active">Dashboard</a>
-                <a href="#" class="sidebar-link">Upload Prescription</a>
-                <a href="{{ url('/pharmacies') }}" class="sidebar-link">Find Pharmacy</a>
-            </div>
-            <div class="mt-8">
                 <a href="{{ url('/orders') }}" class="sidebar-link">My Orders</a>
-                <a href="{{ url('/payment-methods') }}" class="sidebar-link">Payment Methods</a>
-                <a href="{{ url('/addresses') }}" class="sidebar-link">Addresses</a>
-                <a href="{{ url('/settings') }}" class="sidebar-link">Settings</a>
+                <a href="{{ url('/pharmacies') }}" class="sidebar-link">Pharmacies</a>
+                <a href="{{ url('/customer/profile') }}" class="sidebar-link">My Profile</a>
             </div>
-        </div>
+        
 
         <div class="main-content">
             <h1 class="main-heading">Welcome back, {{ session('user')['username'] }}!</h1>

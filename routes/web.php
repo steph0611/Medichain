@@ -17,6 +17,10 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminPharmacyController;
 use App\Http\Controllers\AdminPrescriptionController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\CustomerProfileController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\PaymentController;
+
 
 // ---------------------------
 // Landing Page (App Info)
@@ -183,3 +187,50 @@ Route::prefix('admin')->group(function() {
     Route::patch('/settings', [App\Http\Controllers\AdminSettingsController::class, 'update'])->name('admin.settings.update');
     Route::post('/settings/logout', [App\Http\Controllers\AdminSettingsController::class, 'logout'])->name('admin.settings.logout');
 });
+
+
+
+Route::get('/customer/profile', [CustomerProfileController::class, 'edit'])->name('customer.profile');
+Route::post('/customer/profile/update', [CustomerProfileController::class, 'update'])->name('customer.profile.update');
+Route::post('/customer/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('customer.profile.password');
+
+
+
+
+
+Route::prefix('customer/settings')->group(function () {
+    Route::get('/', [SettingsController::class, 'index'])->name('customer.settings');
+
+    Route::patch('/', [SettingsController::class, 'update'])->name('customer.settings.update');
+
+    Route::post('/notifications', [SettingsController::class, 'saveNotifications'])->name('customer.settings.notifications');
+    Route::post('/preferences', [SettingsController::class, 'savePreferences'])->name('customer.settings.preferences');
+    Route::post('/privacy', [SettingsController::class, 'savePrivacy'])->name('customer.settings.privacy');
+
+    Route::post('/deactivate', [SettingsController::class, 'deactivateAccount'])->name('customer.settings.deactivate');
+    Route::post('/delete', [SettingsController::class, 'deleteAccount'])->name('customer.settings.delete');
+});
+
+
+
+
+// Show prescription upload form for a specific shop
+Route::get('/prescription/upload/{shop_id}', [PrescriptionController::class, 'showUploadForm'])
+    ->name('prescription.upload');
+
+// Handle prescription upload and create order
+Route::post('/prescription/upload/{shop_id}', [PrescriptionController::class, 'uploadPrescription'])
+    ->name('prescription.upload.post');
+
+// ---------------------------
+// Payment Routes
+// ---------------------------
+
+// Show payment form
+Route::get('/payment', [PaymentController::class, 'showPaymentForm'])->name('payment.show');
+
+// Process payment (Stripe)
+Route::post('/payment', [PaymentController::class, 'processPayment'])->name('payment.process');
+
+// Payment success page
+Route::get('/payment-success', [PaymentController::class, 'paymentSuccess'])->name('payment.success');

@@ -195,7 +195,7 @@
                     <a href="{{ url('/forgot-password') }}">Forgot Password?</a>
                 </div>
                 
-                <button type="submit">Log in</button>
+                <button id="login-btn" type="submit">Log in</button>
 
                 <div class="register">
                     <p>Don't have an account? <a href="{{ url('/userselect') }}">Sign Up</a></p>

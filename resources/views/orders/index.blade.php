@@ -58,17 +58,10 @@
 
     <div style="display: flex;">
         <div class="sidebar">
-            <div class="mb-4">
-                <a href="{{ url('/dashboard') }}" class="sidebar-link active">Dashboard</a>
-                <a href="#" class="sidebar-link">Upload Prescription</a>
-                <a href="{{ url('/pharmacies') }}" class="sidebar-link">Find Pharmacy</a>
-            </div>
-            <div class="mt-8">
-                <a href="{{ url('/orders') }}" class="sidebar-link">My Orders</a>
-                <a href="{{ url('/payment-methods') }}" class="sidebar-link">Payment Methods</a>
-                <a href="{{ url('/addresses') }}" class="sidebar-link">Addresses</a>
-                <a href="{{ url('/settings') }}" class="sidebar-link">Settings</a>
-            </div>
+                <a href="{{ url('/dashboard') }}" class="sidebar-link">Dashboard</a>
+                <a href="{{ url('/orders') }}" class="sidebar-link active">My Orders</a>
+                <a href="{{ url('/pharmacies') }}" class="sidebar-link">Pharmacies</a>
+                <a href="{{ url('/customer/profile') }}" class="sidebar-link">My Profile</a>
         </div>
 
         <!-- ✅ Main Content -->

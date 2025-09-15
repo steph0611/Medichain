@@ -39,7 +39,7 @@
                         <input type="email" name="email" value="{{ $admin['email'] ?? '' }}" placeholder="Email" class="border rounded p-2" required>
                         <input type="password" name="password" placeholder="Password (leave blank to keep current)" class="border rounded p-2">
                     </div>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Update</button>
+                    <button id="updateBtn" type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Update</button>
                 </form>
 
                 <form action="{{ route('admin.settings.logout') }}" method="POST" class="mt-4">
