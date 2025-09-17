@@ -21,7 +21,7 @@ class OrderStatusController extends Controller
 
         $customerId = $customer['customer_id'];
 
-        // Fetch orders for this customer
+        // Fetch all orders for this customer
         $response = Http::withHeaders([
             'apikey' => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
@@ -33,16 +33,35 @@ class OrderStatusController extends Controller
         $orders = $response->json();
 
         // Separate ongoing vs recent
-        // Ongoing = not yet delivered (Pending, Accepted, Ready)
-        $ongoingOrders = array_filter($orders, fn ($o) =>
+        $ongoingOrders = array_filter($orders, fn($o) =>
             in_array($o['status'], ['Pending', 'Accepted', 'Ready'])
         );
 
-        // Recent = finished (Delivered)
-        $recentOrders = array_filter($orders, fn ($o) =>
-            $o['status'] === 'Delivered'
+        $recentOrders = array_filter($orders, fn($o) =>
+            in_array($o['status'], ['Delivered', 'Cancelled'])
         );
 
         return view('orders.index', compact('ongoingOrders', 'recentOrders'));
+    }
+
+    // Cancel an order by updating its status
+    public function cancelOrder($orderId, Request $request)
+    {
+        $reason = $request->input('reason', 'No reason provided');
+
+        $response = Http::withHeaders([
+            'apikey' => $this->supabaseKey,
+            'Authorization' => 'Bearer ' . $this->supabaseKey,
+        ])->patch($this->supabaseUrl . '/rest/v1/orders?id=eq.' . $orderId, [
+            'status' => 'Cancelled',
+            'cancel_reason' => $reason,       // Make sure this column exists in Supabase
+            'cancelled_at' => now()->toIso8601String(),
+        ]);
+
+        if ($response->failed()) {
+            return back()->with('error', 'Error cancelling order: ' . $response->body());
+        }
+
+        return back()->with('success', 'Order cancelled successfully.');
     }
 }

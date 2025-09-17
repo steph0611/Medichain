@@ -68,7 +68,6 @@
             from { transform: translateY(30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
-        /* Sidebar icons + spacing */
         .sidebar .nav-link i {
             margin-right: 10px;
         }
@@ -113,8 +112,11 @@
         <div class="alert alert-danger shadow-sm rounded-pill px-4 py-2">{{ session('error') }}</div>
     @endif
 
-    {{-- Prescriptions Table --}}
-    <div class="card shadow-lg">
+    {{-- Active Prescriptions --}}
+    <div class="card shadow-lg mb-5">
+        <div class="card-header bg-primary text-white fw-bold">
+            Active Prescriptions
+        </div>
         <div class="card-body">
             <table class="table table-hover align-middle text-center">
                 <thead class="table-primary">
@@ -137,14 +139,11 @@
                             <td>{{ \Carbon\Carbon::parse($p['prescription_date'])->format('d M Y') }}</td>
                             <td>
                                 @if($p['image_data'] ?? false)
-                                    <!-- Button trigger modal -->
                                     <button type="button" class="btn btn-outline-primary btn-sm" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#imgModal{{ $p['id'] }}">
                                         View
                                     </button>
-
-                                    <!-- Modal -->
                                     <div class="modal fade" id="imgModal{{ $p['id'] }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-lg modal-dialog-centered">
                                             <div class="modal-content p-3">
@@ -171,7 +170,6 @@
                                     @elseif($status === 'Accepted') bg-success
                                     @elseif($status === 'Ready') bg-warning text-dark
                                     @elseif($status === 'Delivered') bg-primary
-                                    @elseif($status === 'Cancelled') bg-danger
                                     @else bg-dark
                                     @endif">
                                     {{ $status }}
@@ -182,7 +180,6 @@
                                       class="d-flex flex-wrap justify-content-center gap-2">
                                     @csrf
                                     @method('PATCH')
-
                                     @if($status === 'Pending')
                                         <button type="submit" name="status" value="Accepted" class="btn btn-success btn-sm">✅ Accept</button>
                                         <button type="submit" name="status" value="Cancelled" class="btn btn-danger btn-sm">❌ Cancel</button>
@@ -191,19 +188,48 @@
                                         <button type="submit" name="status" value="Delivered" class="btn btn-primary btn-sm">🚚 Delivered</button>
                                     @elseif($status === 'Ready')
                                         <button type="submit" name="status" value="Delivered" class="btn btn-primary btn-sm">🚚 Delivered</button>
-                                    @else
-                                        <button type="submit" name="status" value="Pending" class="btn btn-secondary btn-sm">⏳ Pending</button>
-                                        <button type="submit" name="status" value="Accepted" class="btn btn-success btn-sm">✅ Accept</button>
-                                        <button type="submit" name="status" value="Ready" class="btn btn-warning btn-sm">📦 Ready</button>
-                                        <button type="submit" name="status" value="Delivered" class="btn btn-primary btn-sm">🚚 Delivered</button>
-                                        <button type="submit" name="status" value="Cancelled" class="btn btn-danger btn-sm">❌ Cancel</button>
                                     @endif
                                 </form>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted fst-italic">✨ No prescriptions found.</td>
+                            <td colspan="7" class="text-center text-muted fst-italic">✨ No active prescriptions found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {{-- Cancelled Prescriptions --}}
+    <div class="card shadow-lg">
+        <div class="card-header bg-danger text-white fw-bold">
+            Cancelled Prescriptions
+        </div>
+        <div class="card-body">
+            <table class="table table-hover align-middle text-center">
+                <thead class="table-danger">
+                    <tr>
+                        <th>👤 Patient</th>
+                        <th>🩺 Doctor</th>
+                        <th>📅 Date</th>
+                        <th>📖 Instructions</th>
+                        <th>❌ Cancelled At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($cancelledPrescriptions as $cp)
+                        <tr>
+                            <td><strong>{{ $cp['patient_name'] }}</strong></td>
+                            <td>{{ $cp['doctor_name'] }}</td>
+                            <td>{{ \Carbon\Carbon::parse($cp['prescription_date'])->format('d M Y') }}</td>
+                            <td>{{ $cp['instructions'] ?? '—' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($cp['cancelled_at'])->format('d M Y H:i') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-muted fst-italic">🚫 No cancelled prescriptions.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -212,11 +238,7 @@
     </div>
 </div>
 
-<!-- Bootstrap icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
-<!-- Bootstrap JS (needed for modals) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

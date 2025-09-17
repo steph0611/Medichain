@@ -234,3 +234,8 @@ Route::post('/payment', [PaymentController::class, 'processPayment'])->name('pay
 
 // Payment success page
 Route::get('/payment-success', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
+
+
+
+Route::patch('/orders/cancel/{id}', [OrderStatusController::class, 'cancelOrder'])->name('orders.cancel');
+

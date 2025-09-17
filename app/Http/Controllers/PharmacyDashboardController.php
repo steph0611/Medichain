@@ -32,48 +32,98 @@ class PharmacyDashboardController extends Controller
         $prescriptionResponse = $client->get('/rest/v1/prescriptions', [
             'query' => ['shop_id' => 'eq.' . $shop_id],
         ]);
-        $prescriptions = json_decode($prescriptionResponse->getBody(), true);
+        $prescriptions = json_decode($prescriptionResponse->getBody(), true) ?? [];
 
-        return view('pharmacy-dashboard', compact('pharmacy', 'prescriptions'));
+        // Get cancelled prescriptions (safe: if table missing or query fails we return empty array)
+        try {
+            $cancelledResponse = $client->get('/rest/v1/cancelled_prescriptions', [
+                'query' => ['shop_id' => 'eq.' . $shop_id],
+            ]);
+            $cancelledPrescriptions = json_decode($cancelledResponse->getBody(), true) ?? [];
+        } catch (\Exception $e) {
+            // prevent undefined variable in view — log if needed
+            \Log::warning('Error fetching cancelled_prescriptions: ' . $e->getMessage());
+            $cancelledPrescriptions = [];
+        }
+
+        return view('pharmacy-dashboard', compact('pharmacy', 'prescriptions', 'cancelledPrescriptions'));
     }
 
     // ---------------------------
-    // Update prescription + order status (like prescriptions)
+    // Update prescription + order status
     // ---------------------------
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|string|in:Pending,Accepted,Ready,Delivered',
+            'status' => 'required|string|in:Pending,Accepted,Ready,Delivered,Cancelled',
         ]);
 
         $client = $this->supabaseClient();
         $now = Carbon::now()->toIso8601String();
 
         try {
-            // 1️⃣ Update prescription status
-            $client->patch('/rest/v1/prescriptions?id=eq.' . $id, [
-                'json' => [
-                    'status' => $request->status,   // Capitalized
-                    'updated_at' => $now
-                ],
-                'headers' => ['Prefer' => 'return=representation']
-            ]);
+            if ($request->status === 'Cancelled') {
+                // 1️⃣ Fetch prescription data
+                $response = $client->get("/rest/v1/prescriptions?id=eq.$id", [
+                    'headers' => ['Prefer' => 'return=representation']
+                ]);
+                $prescription = json_decode($response->getBody(), true)[0] ?? null;
 
-            // 2️⃣ Update linked order(s) with same prescription_id
-            $client->patch('/rest/v1/orders?prescription_id=eq.' . $id, [
-                'json' => [
-                    'status' => $request->status,   // ✅ Capitalized
-                    'updated_at' => $now
-                ],
-                'headers' => ['Prefer' => 'return=representation']
-            ]);
+                if ($prescription) {
+                    // Prepare insert data: keep original prescription id in prescription_id field,
+                    // but remove the id field to avoid conflict with cancelled_prescriptions PK
+                    $insertData = $prescription;
+                    $insertData['prescription_id'] = $prescription['id'];
+                    if (isset($insertData['id'])) {
+                        unset($insertData['id']);
+                    }
+                    $insertData['status'] = 'Cancelled';
+                    $insertData['cancelled_at'] = $now;
+                    $insertData['updated_at'] = $now;
+                    // Insert into cancelled_prescriptions
+                    $client->post('/rest/v1/cancelled_prescriptions', [
+                        'json' => $insertData,
+                        'headers' => ['Prefer' => 'return=representation']
+                    ]);
 
-            return back()->with('success', "Prescription & Order status updated to {$request->status}!");
+                    // Delete original prescription
+                    $client->delete("/rest/v1/prescriptions?id=eq.$id");
+
+                    // Update related orders (if any)
+                    $client->patch("/rest/v1/orders?prescription_id=eq.$id", [
+                        'json' => [
+                            'status' => 'Cancelled',
+                            'updated_at' => $now
+                        ],
+                        'headers' => ['Prefer' => 'return=representation']
+                    ]);
+                } else {
+                    return back()->with('error', 'Prescription not found to cancel.');
+                }
+            } else {
+                // Normal flow: update prescriptions + orders
+                $client->patch("/rest/v1/prescriptions?id=eq.$id", [
+                    'json' => [
+                        'status' => $request->status,
+                        'updated_at' => $now
+                    ],
+                    'headers' => ['Prefer' => 'return=representation']
+                ]);
+
+                $client->patch("/rest/v1/orders?prescription_id=eq.$id", [
+                    'json' => [
+                        'status' => $request->status,
+                        'updated_at' => $now
+                    ],
+                    'headers' => ['Prefer' => 'return=representation']
+                ]);
+            }
+
+            return back()->with('success', "Prescription updated to {$request->status}!");
         } catch (\Exception $e) {
             return back()->with('error', 'Error updating status: ' . $e->getMessage());
         }
     }
-
 
     // ---------------------------
     // Supabase client helper
