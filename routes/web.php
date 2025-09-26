@@ -80,13 +80,15 @@ Route::get('/userselect', function () {
 // Customer Registration
 // ---------------------------
 Route::get('/registerC', [RegCController::class, 'showRegisterCForm'])->name('registerC');
-Route::post('/registerC', [RegCController::class, 'register'])->name('register.post');
+Route::post('/registerC', [RegCController::class, 'register'])->name('register.customer');
 
 // ---------------------------
 // Shop Registration
 // ---------------------------
 Route::get('/registerS', [RegSController::class, 'showRegisterSForm'])->name('registerS');
-Route::post('/registerS', [RegSController::class, 'register'])->name('register.post');
+Route::post('/registerS', [RegSController::class, 'register'])->name('register.shop');
+
+
 
 // ---------------------------
 // Prescription Upload (Customer)
