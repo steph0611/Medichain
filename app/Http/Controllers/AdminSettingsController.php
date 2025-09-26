@@ -28,6 +28,7 @@ class AdminSettingsController extends Controller
                 'Content-Type'  => 'application/json',
             ],
             'timeout' => 20,
+            'verify' => false  // Disable SSL verification for development
         ]);
     }
 

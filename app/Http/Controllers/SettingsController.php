@@ -24,6 +24,7 @@ class SettingsController extends Controller
                 'Content-Type'  => 'application/json',
                 'Accept'        => 'application/json',
             ],
+            'verify' => false  // Disable SSL verification for development
         ]);
     }
 

@@ -37,7 +37,8 @@ class RegSController extends Controller
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-            ]
+            ],
+            'verify' => false  // Disable SSL verification for development
         ]);
 
         try {
@@ -59,7 +60,10 @@ class RegSController extends Controller
 
             // Fetch latitude & longitude using Nominatim from city
             $cityQuery = $request->city . ', Sri Lanka';
-            $httpClient = new Client(['headers' => ['User-Agent' => 'Medichain/1.0']]);
+            $httpClient = new Client([
+                'headers' => ['User-Agent' => 'Medichain/1.0'],
+                'verify' => false  // Disable SSL verification for development
+            ]);
             $nominatimUrl = "https://nominatim.openstreetmap.org/search?q=" . urlencode($cityQuery) . "&format=json&limit=1";
 
             try {

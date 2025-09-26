@@ -138,6 +138,7 @@ class PharmacyDashboardController extends Controller
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ],
+            'verify' => false  // Disable SSL verification for development
         ]);
     }
 }

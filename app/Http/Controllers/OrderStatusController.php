@@ -22,7 +22,9 @@ class OrderStatusController extends Controller
         $customerId = $customer['customer_id'];
 
         // Fetch all orders for this customer
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+            'verify' => false  // Disable SSL verification for development
+        ])->withHeaders([
             'apikey' => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
         ])->get($this->supabaseUrl . '/rest/v1/orders', [
@@ -49,7 +51,9 @@ class OrderStatusController extends Controller
     {
         $reason = $request->input('reason', 'No reason provided');
 
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+            'verify' => false  // Disable SSL verification for development
+        ])->withHeaders([
             'apikey' => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
         ])->patch($this->supabaseUrl . '/rest/v1/orders?id=eq.' . $orderId, [

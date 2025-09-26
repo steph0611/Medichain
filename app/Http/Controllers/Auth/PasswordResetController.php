@@ -77,7 +77,9 @@ class PasswordResetController extends Controller
         $newPassword = Hash::make($request->password);
 
         // Update password in Supabase 'customer' table via Table API
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+            'verify' => false  // Disable SSL verification for development
+        ])->withHeaders([
             'apikey' => env('SUPABASE_SERVICE_ROLE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_ROLE_KEY'),
             'Content-Type' => 'application/json',

@@ -28,7 +28,8 @@ class DashboardController extends Controller
                 'apikey' => $this->supabaseKey,
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
                 'Accept' => 'application/json',
-            ]
+            ],
+            'verify' => false  // Disable SSL verification for development
         ]);
 
         try {

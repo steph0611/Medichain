@@ -20,7 +20,9 @@ class PharmacyController extends Controller
         $custLat = $user['latitude'] ?? null;
         $custLng = $user['longitude'] ?? null;
 
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+            'verify' => false  // Disable SSL verification for development
+        ])->withHeaders([
             'apikey'        => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
         ])->get($this->supabaseUrl . '/rest/v1/Shop', [
@@ -62,7 +64,9 @@ class PharmacyController extends Controller
         $custLat = $user['latitude'] ?? null;
         $custLng = $user['longitude'] ?? null;
 
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+            'verify' => false  // Disable SSL verification for development
+        ])->withHeaders([
             'apikey'        => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
         ])->get($this->supabaseUrl . '/rest/v1/Shop', [
@@ -90,7 +94,9 @@ class PharmacyController extends Controller
      */
     public function orders($id)
     {
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+            'verify' => false  // Disable SSL verification for development
+        ])->withHeaders([
             'apikey'        => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
         ])->get($this->supabaseUrl . '/rest/v1/Orders', [

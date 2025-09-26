@@ -22,7 +22,9 @@ class HistoryController extends Controller
         $customerId = $customer['customer_id'];
 
         // ✅ Fetch only Delivered orders
-        $response = Http::withHeaders([
+        $response = Http::withOptions([
+            'verify' => false  // Disable SSL verification for development
+        ])->withHeaders([
             'apikey' => $this->supabaseKey,
             'Authorization' => 'Bearer ' . $this->supabaseKey,
         ])->get($this->supabaseUrl . '/rest/v1/orders', [

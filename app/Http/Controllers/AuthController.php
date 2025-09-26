@@ -47,7 +47,8 @@ class AuthController extends Controller
                     'Authorization' => 'Bearer ' . $this->supabaseKey,
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
-                ]
+                ],
+                'verify' => false  // Disable SSL verification for development
             ]);
 
             // 🧍 Try customer login
@@ -146,7 +147,8 @@ class AuthController extends Controller
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-            ]
+            ],
+            'verify' => false  // Disable SSL verification for development
         ]);
 
         try {
@@ -189,7 +191,8 @@ class AuthController extends Controller
                         'Authorization' => 'Bearer ' . $this->supabaseKey,
                         'Accept'        => 'application/json',
                         'Content-Type'  => 'application/json',
-                    ]
+                    ],
+                    'verify' => false  // Disable SSL verification for development
                 ]);
 
                 // 🛑 Clear last_active on logout

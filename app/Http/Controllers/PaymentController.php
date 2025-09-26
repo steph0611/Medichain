@@ -21,29 +21,54 @@ class PaymentController extends Controller
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
                 'Accept'        => 'application/json',
                 'Content-Type'  => 'application/json',
-            ]
+            ],
+            'verify' => false  // Disable SSL verification for development
         ]);
     }
 
     // Show payment page
     public function showPaymentForm(Request $request)
     {
-        $prescriptionId = $request->prescription_id;
         $amount = $request->amount;
+        
+        // Check if we have pending prescription data in session
+        $pendingPrescription = session('pending_prescription');
+        
+        if (!$pendingPrescription) {
+            return redirect('/dashboard')->with('error', 'No prescription data found. Please upload a prescription first.');
+        }
 
-        return view('customer.payment', compact('prescriptionId', 'amount'));
+        return view('customer.payment', compact('amount'));
     }
 
     // Process payment
     public function processPayment(Request $request)
     {
         $request->validate([
-            'prescription_id' => 'required',
             'amount' => 'required|numeric',
             'payment_method_id' => 'required'
         ]);
 
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        // Check if we have pending prescription data
+        $pendingPrescription = session('pending_prescription');
+        
+        if (!$pendingPrescription) {
+            return response()->json(['error' => 'No prescription data found. Please upload a prescription first.']);
+        }
+
+        // Check if this is demo mode
+        if ($request->has('demo_mode') && $request->demo_mode) {
+            return $this->processDemoPayment($request);
+        }
+
+        // Production mode with Stripe
+        $stripeSecret = env('STRIPE_SECRET');
+        
+        if (!$stripeSecret) {
+            return response()->json(['error' => 'Stripe is not configured. Please set up your Stripe keys in the .env file.']);
+        }
+
+        Stripe::setApiKey($stripeSecret);
 
         try {
             $paymentIntent = PaymentIntent::create([
@@ -52,7 +77,7 @@ class PaymentController extends Controller
                 'payment_method' => $request->payment_method_id,
                 'confirmation_method' => 'manual',
                 'confirm' => true,
-                'return_url' => route('payment.success', ['prescription_id' => $request->prescription_id])
+                'return_url' => route('payment.success')
             ]);
 
             if ($paymentIntent->status === 'requires_action') {
@@ -62,26 +87,140 @@ class PaymentController extends Controller
                 ]);
             }
 
-            // Payment succeeded → update prescription
-            $client = $this->supabaseClient();
-            $client->patch("/rest/v1/prescriptions?id=eq.{$request->prescription_id}", [
-                'json' => [
-                    'status' => 'Paid',
-                    'payment_id' => $paymentIntent->id
-                ]
-            ]);
+            // Payment succeeded → store prescription in database
+            $prescriptionId = $this->storePrescriptionAfterPayment($pendingPrescription, $paymentIntent->id);
 
-            return response()->json(['success' => true]);
+            // Store prescription ID in session for success page
+            session(['last_prescription_id' => $prescriptionId]);
+
+            // Clear session data
+            session()->forget('pending_prescription');
+
+            return response()->json(['success' => true, 'prescription_id' => $prescriptionId]);
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()]);
         }
     }
 
+    // Demo payment processing
+    private function processDemoPayment(Request $request)
+    {
+        try {
+            // Simulate payment processing delay
+            sleep(1);
+            
+            // Get pending prescription data
+            $pendingPrescription = session('pending_prescription');
+            
+            if (!$pendingPrescription) {
+                return response()->json(['error' => 'No prescription data found.']);
+            }
+            
+            // Store prescription in database after successful demo payment
+            $prescriptionId = $this->storePrescriptionAfterPayment($pendingPrescription, 'demo_payment_' . time());
+
+            // Store prescription ID in session for success page
+            session(['last_prescription_id' => $prescriptionId]);
+
+            // Clear session data
+            session()->forget('pending_prescription');
+
+            return response()->json(['success' => true, 'demo_mode' => true, 'prescription_id' => $prescriptionId]);
+
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Demo payment failed: ' . $e->getMessage()]);
+        }
+    }
+
+    // Store prescription in database after successful payment
+    private function storePrescriptionAfterPayment($prescriptionData, $paymentId)
+    {
+        try {
+            $client = $this->supabaseClient();
+            
+            // Add payment information to prescription data
+            $prescriptionData['status'] = 'Paid';
+            $prescriptionData['payment_id'] = $paymentId;
+            
+            // Store prescription in database
+            $prescriptionResponse = $client->post('/rest/v1/prescriptions', [
+                'json' => [$prescriptionData],
+                'headers' => ['Prefer' => 'return=representation']
+            ]);
+
+            if ($prescriptionResponse->getStatusCode() !== 201) {
+                throw new \Exception('Failed to store prescription in database');
+            }
+
+            $prescriptionResult = json_decode($prescriptionResponse->getBody(), true)[0] ?? null;
+            $prescriptionId = $prescriptionResult['id'] ?? null;
+
+            if (!$prescriptionId) {
+                throw new \Exception('Prescription stored but ID missing');
+            }
+
+            // Create order record
+            $this->createOrderRecord($prescriptionData, $prescriptionId);
+
+            return $prescriptionId;
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to store prescription after payment: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    // Create order record
+    private function createOrderRecord($prescriptionData, $prescriptionId)
+    {
+        try {
+            $client = $this->supabaseClient();
+            
+            $orderPayload = [
+                'order_id'         => \Illuminate\Support\Str::uuid()->toString(),
+                'prescription_id'  => $prescriptionId,
+                'customer_id'      => $prescriptionData['customer_id'],
+                'shop_id'          => $prescriptionData['shop_id'],
+                'patient_name'     => $prescriptionData['patient_name'],
+                'doctor_name'      => $prescriptionData['doctor_name'],
+                'prescription_date'=> $prescriptionData['prescription_date'],
+                'address'          => $prescriptionData['address'],
+                'phone'            => $prescriptionData['phone'],
+                'email'            => $prescriptionData['email'],
+                'instructions'     => $prescriptionData['instructions'],
+                'image_data'       => $prescriptionData['image_data'],
+                'image_type'       => $prescriptionData['image_type'],
+                'status'           => 'Paid',
+                'amount'           => 50.00, // Default amount
+                'payment_id'       => $prescriptionData['payment_id'],
+                'created_at'       => \Carbon\Carbon::now()->toISOString(),
+            ];
+
+            $orderResponse = $client->post('/rest/v1/orders', [
+                'json' => [$orderPayload],
+                'headers' => ['Prefer' => 'return=representation']
+            ]);
+
+            if ($orderResponse->getStatusCode() !== 201) {
+                \Log::error('Failed to create order record');
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Failed to create order record: ' . $e->getMessage());
+        }
+    }
+
     // Success page after 3D secure / redirect payments
     public function paymentSuccess(Request $request)
     {
-        $prescriptionId = $request->prescription_id;
+        // Get prescription ID from session or request
+        $prescriptionId = $request->prescription_id ?? session('last_prescription_id');
+        
+        if (!$prescriptionId) {
+            return redirect('/dashboard')->with('error', 'Payment successful but prescription ID not found.');
+        }
+        
         return view('customer.payment-success', compact('prescriptionId'));
     }
 }

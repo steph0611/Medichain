@@ -45,7 +45,8 @@ class RegCController extends Controller
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-            ]
+            ],
+            'verify' => false  // Disable SSL verification for development
         ]);
 
         try {

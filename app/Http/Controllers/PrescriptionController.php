@@ -21,7 +21,8 @@ class PrescriptionController extends Controller
                 'Authorization' => 'Bearer ' . $this->supabaseKey,
                 'Accept'        => 'application/json',
                 'Content-Type'  => 'application/json',
-            ]
+            ],
+            'verify' => false  // Disable SSL verification for development
         ]);
     }
 
